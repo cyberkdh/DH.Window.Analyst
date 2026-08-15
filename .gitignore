@@ -1,0 +1,33 @@
+# Visual Studio / .NET build artifacts
+[Bb]in/
+[Oo]bj/
+output/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio user/cache files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ReSharper / other IDE caches
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Test / coverage results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# OS files
+Thumbs.db
+.DS_Store

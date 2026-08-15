@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build solution (Release)
+        run: msbuild DH.Window.AnalystSol\DH.Window.AnalystSol.sln /restore /t:Build /p:Configuration=Release /v:minimal
+
+      - name: Zip build output
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem "DH.Window.AnalystSol\output\Release" -Include *.exe,*.dll,*.exe.config -File -Recurse
+          Compress-Archive -Path $files.FullName -DestinationPath "DH.Window.Analyst-${{ github.ref_name }}.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: DH.Window.Analyst-${{ github.ref_name }}.zip
+          generate_release_notes: true

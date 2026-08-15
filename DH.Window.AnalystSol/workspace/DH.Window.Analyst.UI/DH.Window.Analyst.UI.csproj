@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net46</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>DH.Window.Analyst.UI</RootNamespace>
+    <AssemblyName>DH.Window.Analyst.UI</AssemblyName>
+    <Version>1.0.0.1</Version>
+    <LangVersion>latest</LangVersion>
+    <Platforms>AnyCPU</Platforms>
+    <BaseOutputPath>..\..\output\</BaseOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- lets CI build net46 without the full .NET Framework Developer Pack installed on the runner -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DH.Window.Analyst.Core\DH.Window.Analyst.Core.csproj" />
+  </ItemGroup>
+
+</Project>

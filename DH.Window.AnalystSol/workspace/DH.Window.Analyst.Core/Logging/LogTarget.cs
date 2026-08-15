@@ -1,0 +1,18 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//	Projects		: DH.Window.Analyst
+//	Author			: CyberKDH
+//	Module			: DH.Window.Analyst
+//	History			:
+//	Copyrights		: Copyright ⓒCYBERKDH. All Rights Reserved.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+using System;
+
+namespace DH.Window.Analyst.Logging {
+	[Flags]
+	public enum LogTarget {
+		DebugView = 0x01,
+		File = 0x02,
+		All = DebugView | File
+	}
+}
