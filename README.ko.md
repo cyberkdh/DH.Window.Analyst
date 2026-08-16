@@ -28,19 +28,33 @@ DH.Window.Analyst는 Win32와 UIA를 함께 다루면서, 단순 조회에 그�
 **속성/구조 조회**
 - 기본 정보, Win32 저수준 속성(Window/Client/Restore Rect, Style/ExStyle, Window Proc, Class 정보 등 Spy++ 스타일 전 항목), 자식 윈도우 요약
 - 창 관계 정보(Parent/Owner/First Child/Next/Previous, Z-Order)
-- UIA 속성 및 Child Elements 조회
+- UIA 속성 및 Child Elements 조회, 신뢰도 순 폴백(AutomationId → Name+ControlType → ClassName+ControlType)으로 추천하는 "Suggested Selector" — 자동화 스크립트용으로 key=value/XPath 두 포맷 복사 지원
 - 선택 요소 하이라이트 오버레이, 전면 전환(Foreground)
+
+![Suggested Selector](docs/images/uia-suggested-selector.png)
 
 **실행/액션**
 - UI Automation 패턴 실행 — Invoke, Toggle, ExpandCollapse, Selection, GetValue/SetValue
+- 창 상태 제어 — Win32 창은 Show/Hide/Enable/Disable/Move/Resize/Always On Top, UIA 요소는 Window/Transform 패턴 기반 Minimize/Maximize/Restore/Close/Move/Resize/Rotate
 - 접근성 규칙 검사(UIA 트리 순회 기반 Name/KeyboardFocusable/AutomationId 규칙, 진단 리포트)
+
+![Window Control](docs/images/window-control.png)
 
 **실시간 모니터링**
 - WinEvent 모니터링(`SetWinEventHook` — Create/Destroy/Show/Hide/Focus/Selection/StateChange 등)
-- Window Message 로깅(`WH_CALLWNDPROC`/`WH_GETMESSAGE`, 네이티브 후킹 DLL 기반)
+- Window Message 로깅(`WH_CALLWNDPROC`/`WH_GETMESSAGE`, 네이티브 후킹 DLL 기반), `WM_SIZE`/`WM_MOVE`/`WM_WINDOWPOSCHANGED`/`WM_DPICHANGED`의 Rect/DPI 값을 디코딩해 표시하고 "Layout/DPI Only" 필터 프리셋 원클릭 적용
 
 ![Events 로그](docs/images/events-log.png)
 ![Messages 로그](docs/images/messages-log.png)
+![Message Log Details](docs/images/message-log-details.png)
+
+**진단 & 비교**
+- System Diagnostics 대화상자 — 특정 창이 아닌 시스템 전체 GDI/USER 오브젝트 랭킹, 데스크톱 전체 Z-order 스택
+- A/B Property Snapshot Compare — 두 시점의 속성 스냅샷(Inspector에서 선택 중인 Win32 창 또는 UIA 요소)을 캡처해 나란히 비교(diff), 결과 Export 지원
+- 메인 창 하단에 상시 표시되는 실시간 로그 뷰어 패널(Debug/Info/Warn/Error, 필터 가능)
+
+![System Diagnostics](docs/images/system-diagnostics.png)
+![Snapshot Compare](docs/images/snapshot-compare.png)
 
 **기타**
 - 속성/이벤트/메시지 로그 CSV·JSON Export, 클립보드 복사

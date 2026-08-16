@@ -28,19 +28,33 @@ Several parts of the design — the property panel's General/Style/Class Info/Wi
 **Property/Structure Inspection**
 - Basic info, low-level Win32 properties (Window/Client/Restore Rect, Style/ExStyle, Window Proc, Class info, etc. — full Spy++-style coverage), child window summary
 - Window relationship info (Parent/Owner/First Child/Next/Previous, Z-Order)
-- UIA property and Child Elements inspection
+- UIA property and Child Elements inspection, with a reliability-ranked "Suggested Selector" (AutomationId → Name+ControlType → ClassName+ControlType fallback) copyable as key=value or XPath for automation scripts
 - Selection highlight overlay, bring-to-foreground
+
+![Suggested Selector](docs/images/uia-suggested-selector.png)
 
 **Execution/Actions**
 - UI Automation pattern execution — Invoke, Toggle, ExpandCollapse, Selection, GetValue/SetValue
+- Window state control — Show/Hide/Enable/Disable/Move/Resize/Always On Top for Win32 windows, and Minimize/Maximize/Restore/Close/Move/Resize/Rotate for UIA elements (Window/Transform patterns)
 - Accessibility rule checking (UIA tree traversal-based Name/KeyboardFocusable/AutomationId rules, diagnostic report)
+
+![Window Control](docs/images/window-control.png)
 
 **Real-Time Monitoring**
 - WinEvent monitoring (`SetWinEventHook` — Create/Destroy/Show/Hide/Focus/Selection/StateChange, etc.)
-- Window Message logging (`WH_CALLWNDPROC`/`WH_GETMESSAGE`, native hook DLL-based)
+- Window Message logging (`WH_CALLWNDPROC`/`WH_GETMESSAGE`, native hook DLL-based), with decoded Rect/DPI details for `WM_SIZE`/`WM_MOVE`/`WM_WINDOWPOSCHANGED`/`WM_DPICHANGED` and a one-click "Layout/DPI Only" filter preset
 
 ![Events Log](docs/images/events-log.png)
 ![Messages Log](docs/images/messages-log.png)
+![Message Log Details](docs/images/message-log-details.png)
+
+**Diagnostics & Comparison**
+- System Diagnostics dialog — system-wide GDI/USER object ranking across all GUI processes, plus the full desktop Z-order stack
+- A/B Property Snapshot Compare — capture and diff two property snapshots (a Win32 window or a UIA element, whichever is currently selected in the Inspector) side by side, with diff export
+- Real-time in-app log viewer panel (Debug/Info/Warn/Error, filterable) docked at the bottom of the main window
+
+![System Diagnostics](docs/images/system-diagnostics.png)
+![Snapshot Compare](docs/images/snapshot-compare.png)
 
 **Other**
 - CSV/JSON export and clipboard copy for property/event/message logs
