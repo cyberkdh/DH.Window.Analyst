@@ -28,6 +28,10 @@ namespace DH.Window.Analyst.UI.Controls {
 		// passes the TreeNode itself (not just Tag) so the caller can walk the ancestor chain for a breadcrumb
 		public event EventHandler<TreeNode> NodeSelected;
 
+		public TreeNode SelectedNode {
+			get { return m_trvHierarchy.SelectedNode; }
+		}
+
 		public WindowHierarchyControl() {
 			InitializeComponent();
 

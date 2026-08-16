@@ -62,8 +62,13 @@ namespace DH.Window.Analyst.Services.Automation {
 			{ 0x0216, "WM_MOVING" }, { 0x0231, "WM_ENTERSIZEMOVE" }, { 0x0232, "WM_EXITSIZEMOVE" }, { 0x0281, "WM_IME_SETCONTEXT" },
 			{ 0x0282, "WM_IME_NOTIFY" }, { 0x02A0, "WM_NCMOUSEHOVER" }, { 0x02A1, "WM_MOUSEHOVER" }, { 0x02A2, "WM_NCMOUSELEAVE" },
 			{ 0x02A3, "WM_MOUSELEAVE" }, { 0x0317, "WM_PRINT" }, { 0x0318, "WM_PRINTCLIENT" }, { 0x0319, "WM_APPCOMMAND" },
-			{ 0x031F, "WM_DWMNCRENDERINGCHANGED" }, { 0x0400, "WM_USER" },
+			{ 0x031F, "WM_DWMNCRENDERINGCHANGED" }, { 0x0400, "WM_USER" }, { 0x02E0, "WM_DPICHANGED" },
 		};
+
+		// layout/DPI messages worth decoding into MessageLogItem.DecodedInfo — WM_SIZE/WM_MOVE pack values straight into
+		// wParam/lParam so they're decoded here in managed code; WM_WINDOWPOSCHANGED/WM_DPICHANGED are decoded natively
+		// (see MessageQueue.h) since their lParam points at a struct that only exists in the target process's memory
+		public static readonly uint[] LayoutMessageIds = { 0x0003, 0x0005, 0x0047, 0x02E0 };
 
 		// exposed so UI-layer filter defaults can leave these unchecked without referencing this dictionary directly
 		public static readonly uint[] HighFrequencyMessageIds = {
@@ -260,13 +265,39 @@ namespace DH.Window.Analyst.Services.Automation {
 				IntPtr pentry = IntPtr.Add(copydata.lpData, i * nentrysize);
 				var entry = (MessageHookNativeMethods.HookNativeMessageEntry) Marshal.PtrToStructure(pentry, typeof(MessageHookNativeMethods.HookNativeMessageEntry));
 
-				listitems.Add(new MessageLogItem(DateTime.Now, GetMessageName(entry.nmessage), entry.hwnd, entry.wparam, entry.lparam, entry.bposted));
+				listitems.Add(new MessageLogItem(DateTime.Now, GetMessageName(entry.nmessage), entry.hwnd, entry.wparam, entry.lparam, entry.bposted, DecodeLayoutInfo(entry)));
 			}
 
 			if (listitems.Count > 0) {
 				m_callback?.Invoke(listitems);
 			}
 		}
+
+		// WM_SIZE/WM_MOVE pack values directly into lParam (no cross-process pointer involved), so those two are decoded
+		// here; WM_WINDOWPOSCHANGED/WM_DPICHANGED arrive already decoded from the native side (see MessageQueue.h)
+		private static string DecodeLayoutInfo(MessageHookNativeMethods.HookNativeMessageEntry entry) {
+			long nlparam = entry.lparam.ToInt64();
+
+			switch (entry.nmessage) {
+				case 0x0005: // WM_SIZE
+					return $"cx={LoWord(nlparam)} cy={HiWord(nlparam)}";
+				case 0x0003: // WM_MOVE
+					return $"x={LoWord(nlparam)} y={HiWord(nlparam)}";
+				case 0x0047: // WM_WINDOWPOSCHANGED
+					return entry.bhasdecodedrect == true
+						? $"rect=({entry.nrectleft},{entry.nrecttop},{entry.nrectright},{entry.nrectbottom}) cx={entry.nrectright - entry.nrectleft} cy={entry.nrectbottom - entry.nrecttop}"
+						: null;
+				case 0x02E0: // WM_DPICHANGED
+					return entry.bhasdecodedrect == true
+						? $"dpi={entry.ndpi} rect=({entry.nrectleft},{entry.nrecttop},{entry.nrectright},{entry.nrectbottom})"
+						: null;
+				default:
+					return null;
+			}
+		}
+
+		private static int LoWord(long nvalue) { return (short) (nvalue & 0xFFFF); }
+		private static int HiWord(long nvalue) { return (short) ((nvalue >> 16) & 0xFFFF); }
 
 		public void Dispose() {
 			Stop();

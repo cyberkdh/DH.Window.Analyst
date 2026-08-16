@@ -46,6 +46,8 @@ namespace DH.Window.Analyst.UI.Controls {
 
 		public event EventHandler<TopLevelWindowItem> WindowActivated;
 
+		public event EventHandler<TopLevelWindowItem> WindowPicked;
+
 		public WindowListControl() {
 			InitializeComponent();
 
@@ -63,13 +65,14 @@ namespace DH.Window.Analyst.UI.Controls {
 				}
 			};
 
-			// button and context-menu item are two triggers for the exact same action — both call OnExportClick, never duplicated logic
-			m_btnExport.Click += OnExportClick;
+			// context-menu item and the sidebar's File/View menu are two triggers for the exact same action — both call ExportWindowList, never duplicated logic
 			m_menuCtxExport.Click += OnExportClick;
+			m_ctrlFinder.WindowPicked += (sender, item) => WindowPicked?.Invoke(this, item);
 		}
 
 		public void Initialize(IWindowTreeService treeservice) {
 			m_treeService = treeservice;
+			m_ctrlFinder.Initialize(treeservice);
 		}
 
 		// flashes the highlight overlay over the currently selected window, triggered explicitly (Highlight button)
@@ -140,7 +143,11 @@ namespace DH.Window.Analyst.UI.Controls {
 			return null;
 		}
 
-		// single shared handler for both export triggers (sidebar button, TreeView context menu) — see class remarks on the "one action, one handler" rule
+		// single shared handler for both export triggers (main menu, TreeView context menu) — see class remarks on the "one action, one handler" rule
+		public void ExportWindowList() {
+			OnExportClick(this, EventArgs.Empty);
+		}
+
 		private async void OnExportClick(object sender, EventArgs e) {
 			TopLevelWindowItem itemselected = GetWindowItem(m_trvWindows.SelectedNode);
 			bool bhasselection = itemselected != null;
@@ -321,7 +328,6 @@ namespace DH.Window.Analyst.UI.Controls {
 			m_trvWindows.EndUpdate();
 
 			m_listFilteredWindows = listmatched;
-			m_btnExport.Enabled = listmatched.Count > 0;
 			m_menuCtxExport.Enabled = listmatched.Count > 0;
 
 			// rebuilding the tree always drops SelectedNode without raising AfterSelect, so notify explicitly — otherwise listeners

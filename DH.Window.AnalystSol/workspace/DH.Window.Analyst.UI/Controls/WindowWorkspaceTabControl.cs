@@ -95,6 +95,22 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
+		// unifies snapshot capture for the "Current" submenu entry: dispatches on whatever node type is currently selected in this tab's hierarchy tree (Win32 window or UIA element), single node only — no subtree walk
+		public async Task<PropertySnapshot> CaptureSnapshotAsync() {
+			TreeNode node = m_ctrlHierarchy.SelectedNode;
+			if (node == null) {
+				return null;
+			}
+
+			if (node.Tag is TopLevelWindowItem) {
+				return await m_ctrlPropertyView.CaptureSnapshotAsync();
+			}
+			if (node.Tag is AutomationElement) {
+				return await m_ctrlUiaPropertyView.CaptureSnapshotAsync();
+			}
+			return null;
+		}
+
 		private void ShowWin32PropertyPanel() {
 			m_ctrlUiaPropertyView.Visible = false;
 			m_ctrlPropertyView.Visible = true;

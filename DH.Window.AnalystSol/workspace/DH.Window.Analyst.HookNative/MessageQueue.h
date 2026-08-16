@@ -21,6 +21,16 @@ struct HookNativeMessageEntry {
 	DWORD ndwtimestamp;
 	DWORD ndwthreadid;
 	BOOL bposted; // FALSE = WH_CALLWNDPROC (sent), TRUE = WH_GETMESSAGE (posted/queued)
+
+	// WM_WINDOWPOSCHANGED/WM_DPICHANGED carry a pointer valid only in the target process's address space,
+	// so this DLL (already running inside that process) dereferences it here and ships the decoded values
+	// instead — the managed side receiving this batch has no way to read another process's memory
+	BOOL bhasdecodedrect;
+	LONG nrectleft;
+	LONG nrecttop;
+	LONG nrectright;
+	LONG nrectbottom;
+	UINT ndpi; // nonzero only for WM_DPICHANGED
 };
 
 // Push() runs on the hooked target thread and must never block, so a full queue drops entries instead of stalling the target's message pump

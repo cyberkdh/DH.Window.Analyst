@@ -203,7 +203,18 @@ namespace DH.Window.Analyst.Services.Automation {
 			if (NativeMethods.IsIconic(handle) == true) {
 				NativeMethods.ShowWindow(handle, NativeMethods.SW_RESTORE);
 			}
-			NativeMethods.SetForegroundWindow(handle);
+
+			// SetForegroundWindow alone is subject to Windows' foreground-lock restriction and can silently
+			// no-op or activate a different window instead of ours; the topmost/no-topmost z-order flip is
+			// unaffected by that restriction and reliably brings the target window visually to the front,
+			// so it always runs first — SetForegroundWindow's return value is only used here to log whether
+			// the OS still refused focus afterward (the window is visually on top either way)
+			WindowControlNativeMethods.SetWindowPos(handle, WindowControlNativeMethods.HWND_TOPMOST, 0, 0, 0, 0, WindowControlNativeMethods.SWP_NOMOVE | WindowControlNativeMethods.SWP_NOSIZE);
+			WindowControlNativeMethods.SetWindowPos(handle, WindowControlNativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, WindowControlNativeMethods.SWP_NOMOVE | WindowControlNativeMethods.SWP_NOSIZE);
+
+			if (NativeMethods.SetForegroundWindow(handle) == false) {
+				AppLog.w($"SetForegroundWindow still failed for handle 0x{handle.ToInt64():X} after SetWindowPos fallback; window was brought to top but may not have received focus");
+			}
 		}
 
 		// resolves the top-level ancestor HWND of any window (top-level or descendant); follows both the parent AND owner chain

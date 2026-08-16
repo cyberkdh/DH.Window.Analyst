@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DH.Window.Analyst.Logging;
@@ -23,6 +24,10 @@ namespace DH.Window.Analyst {
 		private TopLevelWindowItem m_selectedWindowItem;
 		private bool m_bGroupByProcess;
 		private MousePickerCoordinator m_pickerCoordinator;
+		private SystemDiagnosticsForm m_dlgDiagnostics;
+		// Property Compare feature: session-only, never persisted — same lifetime as Event/Message logs
+		private readonly List<PropertySnapshot> m_listSnapshots = new List<PropertySnapshot>();
+		private SnapshotCompareForm m_dlgSnapshotCompare;
 
 		public MainForm() {
 			InitializeComponent();
@@ -59,13 +64,13 @@ namespace DH.Window.Analyst {
 				AppLog.i($"Workspace opened: {item.ClassName} \"{item.Title}\" (PID {item.ProcessId}, handle 0x{item.Handle.ToInt64():X})");
 				await m_ctrlWorkspace.OpenWindowAsync(item);
 			};
-			m_ctrlFinder.Initialize(m_treeService);
-			m_ctrlFinder.WindowPicked += async (sender, item) => {
+			m_ctrlWindowList.WindowPicked += async (sender, item) => {
 				AppLog.i($"Finder picked: {item.ClassName} \"{item.Title}\" (PID {item.ProcessId}, handle 0x{item.Handle.ToInt64():X})");
 				await SelectTopLevelWindowAsync(item);
 			};
 
 			m_menuWindow_TabList.DropDownOpening += (sender, e) => m_ctrlWorkspace.PopulateTabListSubmenu(m_menuWindow_TabList.DropDownItems);
+			m_menuTools_TakeSnapshot.DropDownOpening += (sender, e) => m_ctrlWorkspace.PopulateSnapshotTargetSubmenu(m_menuTools_TakeSnapshot.DropDownItems, CaptureSnapshotFromTabAsync);
 
 			m_pickerCoordinator = new MousePickerCoordinator(m_treeService, m_ctrlWorkspace, m_toolBtnShowInfoOnMouse, SelectTopLevelWindowAsync);
 			FormClosing += (sender, e) => m_pickerCoordinator.Dispose();
@@ -90,6 +95,7 @@ namespace DH.Window.Analyst {
 			bool bhasselection = m_selectedWindowItem != null;
 			m_toolBtnHighlight.Enabled = bhasselection;
 			m_toolBtnForeground.Enabled = bhasselection;
+			m_toolBtnRefreshProperty.Enabled = bhasselection;
 		}
 
 		// FindWindows uses blocking SendMessage with no timeout, so it must run off the UI thread or a hung window's handle freezes the app
@@ -115,9 +121,34 @@ namespace DH.Window.Analyst {
 			await m_ctrlWorkspace.OpenWindowAsync(itemfound);
 		}
 
+		// invoked by the "Take Property Snapshot" submenu's "Current" entry and its per-tab entries alike, so whichever Inspector
+		// tab/node the developer means (top-level window or a UIA child element) is captured through the same single path
+		private async Task CaptureSnapshotFromTabAsync(DH.Window.Analyst.UI.Controls.WindowWorkspaceTabControl ctrltab) {
+			PropertySnapshot snapshot = await ctrltab.CaptureSnapshotAsync();
+			if (snapshot == null) {
+				MessageBox.Show(this, "Select a window or element first.", "Take Property Snapshot", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			else {
+				m_listSnapshots.Add(snapshot);
+				AppLog.i($"Property snapshot captured: {snapshot.ClassName} \"{snapshot.WindowTitle}\" (handle 0x{snapshot.Handle.ToInt64():X}), {snapshot.Items.Count} properties");
+			}
+		}
+
 		private async void OnProcControls(object sender, System.EventArgs e) {
-			if (sender == m_btn_refresh_property) {
+			if (sender == m_toolBtnRefreshProperty) {
 				await m_ctrlPropertyView.ShowWindowAsync(m_selectedWindowItem);
+			}
+			else if (sender == m_menuView_ExportWindowList) {
+				m_ctrlWindowList.ExportWindowList();
+			}
+			else if (sender == m_menuTools_CompareSnapshots) {
+				if (m_dlgSnapshotCompare == null || m_dlgSnapshotCompare.IsDisposed == true) {
+					m_dlgSnapshotCompare = new SnapshotCompareForm(m_listSnapshots);
+					m_dlgSnapshotCompare.Show(this);
+				}
+				else {
+					m_dlgSnapshotCompare.Activate();
+				}
 			}
 			else if (sender == m_toolBtnGroupByProcess) {
 				m_bGroupByProcess = !m_bGroupByProcess;
@@ -158,6 +189,15 @@ namespace DH.Window.Analyst {
 							m_ctrlWindowList.SelectWindowByHandle(handletoplevel);
 						}
 					}
+				}
+			}
+			else if (sender == m_menuTools_Diagnostics || sender == m_toolBtnDiagnostics) {
+				if (m_dlgDiagnostics == null || m_dlgDiagnostics.IsDisposed == true) {
+					m_dlgDiagnostics = new SystemDiagnosticsForm();
+					m_dlgDiagnostics.Show(this);
+				}
+				else {
+					m_dlgDiagnostics.Activate();
 				}
 			}
 			else if (sender == m_menuWindow_CloseTab) {

@@ -38,6 +38,13 @@ namespace DH.Window.Analyst.Services.Automation {
 			public uint ndwthreadid;
 			[MarshalAs(UnmanagedType.Bool)]
 			public bool bposted;
+			[MarshalAs(UnmanagedType.Bool)]
+			public bool bhasdecodedrect;
+			public int nrectleft;
+			public int nrecttop;
+			public int nrectright;
+			public int nrectbottom;
+			public uint ndpi;
 		}
 
 		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

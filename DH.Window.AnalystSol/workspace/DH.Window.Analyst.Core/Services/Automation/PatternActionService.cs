@@ -127,5 +127,116 @@ namespace DH.Window.Analyst.Services.Automation {
 				return false;
 			}
 		}
+
+		public bool TryGetWindowVisualState(AutomationElement element, out string strstate) {
+			strstate = null;
+			try {
+				WindowPattern pattern = element.GetCurrentPattern(WindowPattern.Pattern) as WindowPattern;
+				if (pattern == null) {
+					return false;
+				}
+				strstate = pattern.Current.WindowVisualState.ToString();
+				return true;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryClose(AutomationElement element) {
+			try {
+				WindowPattern pattern = element.GetCurrentPattern(WindowPattern.Pattern) as WindowPattern;
+				pattern?.Close();
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryMinimize(AutomationElement element) {
+			try {
+				WindowPattern pattern = element.GetCurrentPattern(WindowPattern.Pattern) as WindowPattern;
+				pattern?.SetWindowVisualState(WindowVisualState.Minimized);
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryMaximize(AutomationElement element) {
+			try {
+				WindowPattern pattern = element.GetCurrentPattern(WindowPattern.Pattern) as WindowPattern;
+				pattern?.SetWindowVisualState(WindowVisualState.Maximized);
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryRestore(AutomationElement element) {
+			try {
+				WindowPattern pattern = element.GetCurrentPattern(WindowPattern.Pattern) as WindowPattern;
+				pattern?.SetWindowVisualState(WindowVisualState.Normal);
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryGetTransformCapabilities(AutomationElement element, out bool bcanmove, out bool bcanresize, out bool bcanrotate) {
+			bcanmove = false;
+			bcanresize = false;
+			bcanrotate = false;
+			try {
+				TransformPattern pattern = element.GetCurrentPattern(TransformPattern.Pattern) as TransformPattern;
+				if (pattern == null) {
+					return false;
+				}
+				bcanmove = pattern.Current.CanMove;
+				bcanresize = pattern.Current.CanResize;
+				bcanrotate = pattern.Current.CanRotate;
+				return true;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryMove(AutomationElement element, double x, double y) {
+			try {
+				TransformPattern pattern = element.GetCurrentPattern(TransformPattern.Pattern) as TransformPattern;
+				pattern?.Move(x, y);
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryResize(AutomationElement element, double width, double height) {
+			try {
+				TransformPattern pattern = element.GetCurrentPattern(TransformPattern.Pattern) as TransformPattern;
+				pattern?.Resize(width, height);
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
+
+		public bool TryRotate(AutomationElement element, double degrees) {
+			try {
+				TransformPattern pattern = element.GetCurrentPattern(TransformPattern.Pattern) as TransformPattern;
+				pattern?.Rotate(degrees);
+				return pattern != null;
+			}
+			catch (Exception) {
+				return false;
+			}
+		}
 	}
 }

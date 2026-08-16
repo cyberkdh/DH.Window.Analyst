@@ -101,6 +101,34 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
+		// fills the "Take Property Snapshot" submenu: a "Current" entry (whatever's selected in the active tab's Inspector) plus one entry per open tab, so capture isn't tied to a single fixed source
+		public void PopulateSnapshotTargetSubmenu(ToolStripItemCollection items, Func<WindowWorkspaceTabControl, Task> onselect) {
+			items.Clear();
+
+			if (m_tabWorkspace.TabCount == 0) {
+				items.Add(new ToolStripMenuItem("(No tabs open)") { Enabled = false });
+				return;
+			}
+
+			if (ActiveTabControl != null) {
+				WindowWorkspaceTabControl ctrlactive = ActiveTabControl;
+				ToolStripMenuItem menuitemcurrent = new ToolStripMenuItem("Current");
+				menuitemcurrent.Click += async (sendermenu, emenu) => await onselect(ctrlactive);
+				items.Add(menuitemcurrent);
+				items.Add(new ToolStripSeparator());
+			}
+
+			foreach (TabPage page in m_tabWorkspace.TabPages) {
+				if (!(page.Controls.Count > 0 && page.Controls[0] is WindowWorkspaceTabControl ctrlworkspacetab)) {
+					continue;
+				}
+
+				ToolStripMenuItem menuitem = new ToolStripMenuItem(page.Text) { Checked = page == m_tabWorkspace.SelectedTab };
+				menuitem.Click += async (sendermenu, emenu) => await onselect(ctrlworkspacetab);
+				items.Add(menuitem);
+			}
+		}
+
 		public async Task OpenWindowAsync(TopLevelWindowItem item) {
 			if (item == null || m_treeService == null) {
 				return;

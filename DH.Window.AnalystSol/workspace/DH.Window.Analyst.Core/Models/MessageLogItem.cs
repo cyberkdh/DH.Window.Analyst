@@ -23,13 +23,17 @@ namespace DH.Window.Analyst.Models {
 		// FALSE = WH_CALLWNDPROC (sent, e.g. SendMessage), TRUE = WH_GETMESSAGE (posted/queued)
 		public bool IsPosted { get; }
 
-		public MessageLogItem(DateTime timestamp, string strmessagename, IntPtr handle, IntPtr wparam, IntPtr lparam, bool bisposted) {
+		// human-readable Rect/DPI decode for layout-related messages (WM_SIZE/WM_MOVE/WM_WINDOWPOSCHANGED/WM_DPICHANGED); null for everything else
+		public string DecodedInfo { get; }
+
+		public MessageLogItem(DateTime timestamp, string strmessagename, IntPtr handle, IntPtr wparam, IntPtr lparam, bool bisposted, string strdecodedinfo) {
 			Timestamp = timestamp;
 			MessageName = strmessagename;
 			Handle = handle;
 			WParam = wparam;
 			LParam = lparam;
 			IsPosted = bisposted;
+			DecodedInfo = strdecodedinfo;
 		}
 	}
 }

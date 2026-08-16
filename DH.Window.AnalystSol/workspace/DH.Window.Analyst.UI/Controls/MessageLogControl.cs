@@ -32,15 +32,19 @@ namespace DH.Window.Analyst.UI.Controls {
 			EnableDoubleBuffering(m_lsvMessages);
 
 			foreach (uint nmessageid in MessageHookMonitorService.SupportedMessageIds) {
-				int nindex = m_clbFilter.Items.Add(MessageHookMonitorService.GetMessageName(nmessageid));
-				m_clbFilter.SetItemChecked(nindex, Array.IndexOf(MessageHookMonitorService.HighFrequencyMessageIds, nmessageid) < 0);
+				m_clbFilter.Items.Add(MessageHookMonitorService.GetMessageName(nmessageid));
 			}
+			ApplyDefaultFilterPreset();
 
 			m_btnStart.Click += (sender, e) => StartMonitoring();
 			m_btnStop.Click += (sender, e) => StopMonitoring();
 			m_btnClear.Click += (sender, e) => { m_lsvMessages.Items.Clear(); UpdateButtonState(); };
 			m_btnExport.Click += (sender, e) => ListViewExportHelper.Export(m_lsvMessages, "Messages");
 			m_btnCopy.Click += (sender, e) => ListViewExportHelper.CopyToClipboard(m_lsvMessages);
+			m_btnLayoutFilter.Click += (sender, e) => ApplyLayoutFilterPreset();
+			m_btnSelectAll.Click += (sender, e) => SetAllFilterItemsChecked(true);
+			m_btnDeselectAll.Click += (sender, e) => SetAllFilterItemsChecked(false);
+			m_btnDefaultFilter.Click += (sender, e) => ApplyDefaultFilterPreset();
 			ListViewRowInteractionHelper.AttachRowContextMenu(m_lsvMessages, "Messages");
 
 			UpdateButtonState();
@@ -102,6 +106,7 @@ namespace DH.Window.Analyst.UI.Controls {
 				lvitem.SubItems.Add("0x" + item.Handle.ToString("X"));
 				lvitem.SubItems.Add("0x" + item.WParam.ToString("X"));
 				lvitem.SubItems.Add("0x" + item.LParam.ToString("X"));
+				lvitem.SubItems.Add(item.DecodedInfo ?? string.Empty);
 
 				(listrows ?? (listrows = new List<ListViewItem>())).Add(lvitem);
 			}
@@ -135,6 +140,35 @@ namespace DH.Window.Analyst.UI.Controls {
 				null,
 				ctrl,
 				new object[] { true });
+		}
+
+		// narrows the filter list to WM_SIZE/WM_MOVE/WM_WINDOWPOSCHANGED/WM_DPICHANGED so a layout/DPI bug can be
+		// chased without wading through unrelated message traffic (mouse/keyboard/paint, etc.)
+		private void ApplyLayoutFilterPreset() {
+			var setlayoutnames = new HashSet<string>();
+			foreach (uint nmessageid in MessageHookMonitorService.LayoutMessageIds) {
+				setlayoutnames.Add(MessageHookMonitorService.GetMessageName(nmessageid));
+			}
+
+			for (int i = 0; i < m_clbFilter.Items.Count; i++) {
+				m_clbFilter.SetItemChecked(i, setlayoutnames.Contains((string) m_clbFilter.Items[i]));
+			}
+		}
+
+		private void SetAllFilterItemsChecked(bool bchecked) {
+			for (int i = 0; i < m_clbFilter.Items.Count; i++) {
+				m_clbFilter.SetItemChecked(i, bchecked);
+			}
+		}
+
+		// restores the initial checklist state: everything checked except high-frequency messages (WM_MOUSEMOVE, etc.)
+		// that would otherwise flood the log; relies on m_clbFilter having been populated from SupportedMessageIds in order
+		private void ApplyDefaultFilterPreset() {
+			int i = 0;
+			foreach (uint nmessageid in MessageHookMonitorService.SupportedMessageIds) {
+				m_clbFilter.SetItemChecked(i, Array.IndexOf(MessageHookMonitorService.HighFrequencyMessageIds, nmessageid) < 0);
+				i++;
+			}
 		}
 
 		private bool IsFilteredIn(string strmessagename) {

@@ -44,6 +44,26 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_lsvPatterns = new System.Windows.Forms.ListView();
 			this.m_colPatternName = new System.Windows.Forms.ColumnHeader();
 			this.m_colPatternState = new System.Windows.Forms.ColumnHeader();
+			this.m_btnMinimize = new System.Windows.Forms.Button();
+			this.m_btnMaximize = new System.Windows.Forms.Button();
+			this.m_btnRestore = new System.Windows.Forms.Button();
+			this.m_btnClose = new System.Windows.Forms.Button();
+			this.m_lblMoveX = new System.Windows.Forms.Label();
+			this.m_txtMoveX = new System.Windows.Forms.TextBox();
+			this.m_lblMoveY = new System.Windows.Forms.Label();
+			this.m_txtMoveY = new System.Windows.Forms.TextBox();
+			this.m_btnMove = new System.Windows.Forms.Button();
+			this.m_lblResizeW = new System.Windows.Forms.Label();
+			this.m_txtResizeW = new System.Windows.Forms.TextBox();
+			this.m_lblResizeH = new System.Windows.Forms.Label();
+			this.m_txtResizeH = new System.Windows.Forms.TextBox();
+			this.m_btnResize = new System.Windows.Forms.Button();
+			this.m_lblRotate = new System.Windows.Forms.Label();
+			this.m_txtRotate = new System.Windows.Forms.TextBox();
+			this.m_btnRotate = new System.Windows.Forms.Button();
+			this.m_lblNativeActions = new System.Windows.Forms.Label();
+			this.m_btnNativeEnable = new System.Windows.Forms.Button();
+			this.m_btnNativeDisable = new System.Windows.Forms.Button();
 			this.m_tabMain.SuspendLayout();
 			this.m_tabPageBasic.SuspendLayout();
 			this.m_tabPageChildren.SuspendLayout();
@@ -183,6 +203,26 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_panelPatternActions.Controls.Add(this.m_btnExpand);
 			this.m_panelPatternActions.Controls.Add(this.m_btnToggle);
 			this.m_panelPatternActions.Controls.Add(this.m_btnInvoke);
+			this.m_panelPatternActions.Controls.Add(this.m_btnMinimize);
+			this.m_panelPatternActions.Controls.Add(this.m_btnMaximize);
+			this.m_panelPatternActions.Controls.Add(this.m_btnRestore);
+			this.m_panelPatternActions.Controls.Add(this.m_btnClose);
+			this.m_panelPatternActions.Controls.Add(this.m_lblMoveX);
+			this.m_panelPatternActions.Controls.Add(this.m_txtMoveX);
+			this.m_panelPatternActions.Controls.Add(this.m_lblMoveY);
+			this.m_panelPatternActions.Controls.Add(this.m_txtMoveY);
+			this.m_panelPatternActions.Controls.Add(this.m_btnMove);
+			this.m_panelPatternActions.Controls.Add(this.m_lblResizeW);
+			this.m_panelPatternActions.Controls.Add(this.m_txtResizeW);
+			this.m_panelPatternActions.Controls.Add(this.m_lblResizeH);
+			this.m_panelPatternActions.Controls.Add(this.m_txtResizeH);
+			this.m_panelPatternActions.Controls.Add(this.m_btnResize);
+			this.m_panelPatternActions.Controls.Add(this.m_lblRotate);
+			this.m_panelPatternActions.Controls.Add(this.m_txtRotate);
+			this.m_panelPatternActions.Controls.Add(this.m_btnRotate);
+			this.m_panelPatternActions.Controls.Add(this.m_lblNativeActions);
+			this.m_panelPatternActions.Controls.Add(this.m_btnNativeEnable);
+			this.m_panelPatternActions.Controls.Add(this.m_btnNativeDisable);
 			this.m_panelPatternActions.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.m_panelPatternActions.Location = new System.Drawing.Point(3, 203);
 			this.m_panelPatternActions.Name = "m_panelPatternActions";
@@ -292,6 +332,205 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_lblNoAction.Text = "No action available for this pattern.";
 			this.m_lblNoAction.Visible = false;
 			//
+			// m_btnMinimize
+			//
+			this.m_btnMinimize.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnMinimize.Location = new System.Drawing.Point(8, 8);
+			this.m_btnMinimize.Name = "m_btnMinimize";
+			this.m_btnMinimize.Size = new System.Drawing.Size(90, 23);
+			this.m_btnMinimize.TabIndex = 10;
+			this.m_btnMinimize.Text = "Minimize";
+			this.m_btnMinimize.UseVisualStyleBackColor = false;
+			this.m_btnMinimize.Visible = false;
+			//
+			// m_btnMaximize
+			//
+			this.m_btnMaximize.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnMaximize.Location = new System.Drawing.Point(104, 8);
+			this.m_btnMaximize.Name = "m_btnMaximize";
+			this.m_btnMaximize.Size = new System.Drawing.Size(90, 23);
+			this.m_btnMaximize.TabIndex = 11;
+			this.m_btnMaximize.Text = "Maximize";
+			this.m_btnMaximize.UseVisualStyleBackColor = false;
+			this.m_btnMaximize.Visible = false;
+			//
+			// m_btnRestore
+			//
+			this.m_btnRestore.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnRestore.Location = new System.Drawing.Point(200, 8);
+			this.m_btnRestore.Name = "m_btnRestore";
+			this.m_btnRestore.Size = new System.Drawing.Size(90, 23);
+			this.m_btnRestore.TabIndex = 12;
+			this.m_btnRestore.Text = "Restore";
+			this.m_btnRestore.UseVisualStyleBackColor = false;
+			this.m_btnRestore.Visible = false;
+			//
+			// m_btnClose
+			//
+			this.m_btnClose.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnClose.Location = new System.Drawing.Point(8, 38);
+			this.m_btnClose.Name = "m_btnClose";
+			this.m_btnClose.Size = new System.Drawing.Size(90, 23);
+			this.m_btnClose.TabIndex = 13;
+			this.m_btnClose.Text = "Close";
+			this.m_btnClose.UseVisualStyleBackColor = false;
+			this.m_btnClose.Visible = false;
+			//
+			// m_lblMoveX
+			//
+			this.m_lblMoveX.AutoSize = true;
+			this.m_lblMoveX.Location = new System.Drawing.Point(8, 13);
+			this.m_lblMoveX.Name = "m_lblMoveX";
+			this.m_lblMoveX.Size = new System.Drawing.Size(17, 13);
+			this.m_lblMoveX.TabIndex = 14;
+			this.m_lblMoveX.Text = "X:";
+			this.m_lblMoveX.Visible = false;
+			//
+			// m_txtMoveX
+			//
+			this.m_txtMoveX.Location = new System.Drawing.Point(30, 9);
+			this.m_txtMoveX.Name = "m_txtMoveX";
+			this.m_txtMoveX.Size = new System.Drawing.Size(60, 20);
+			this.m_txtMoveX.TabIndex = 15;
+			this.m_txtMoveX.Visible = false;
+			//
+			// m_lblMoveY
+			//
+			this.m_lblMoveY.AutoSize = true;
+			this.m_lblMoveY.Location = new System.Drawing.Point(98, 13);
+			this.m_lblMoveY.Name = "m_lblMoveY";
+			this.m_lblMoveY.Size = new System.Drawing.Size(17, 13);
+			this.m_lblMoveY.TabIndex = 16;
+			this.m_lblMoveY.Text = "Y:";
+			this.m_lblMoveY.Visible = false;
+			//
+			// m_txtMoveY
+			//
+			this.m_txtMoveY.Location = new System.Drawing.Point(115, 9);
+			this.m_txtMoveY.Name = "m_txtMoveY";
+			this.m_txtMoveY.Size = new System.Drawing.Size(60, 20);
+			this.m_txtMoveY.TabIndex = 17;
+			this.m_txtMoveY.Visible = false;
+			//
+			// m_btnMove
+			//
+			this.m_btnMove.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnMove.Location = new System.Drawing.Point(185, 8);
+			this.m_btnMove.Name = "m_btnMove";
+			this.m_btnMove.Size = new System.Drawing.Size(90, 23);
+			this.m_btnMove.TabIndex = 18;
+			this.m_btnMove.Text = "Move";
+			this.m_btnMove.UseVisualStyleBackColor = false;
+			this.m_btnMove.Visible = false;
+			//
+			// m_lblResizeW
+			//
+			this.m_lblResizeW.AutoSize = true;
+			this.m_lblResizeW.Location = new System.Drawing.Point(8, 43);
+			this.m_lblResizeW.Name = "m_lblResizeW";
+			this.m_lblResizeW.Size = new System.Drawing.Size(20, 13);
+			this.m_lblResizeW.TabIndex = 19;
+			this.m_lblResizeW.Text = "W:";
+			this.m_lblResizeW.Visible = false;
+			//
+			// m_txtResizeW
+			//
+			this.m_txtResizeW.Location = new System.Drawing.Point(30, 39);
+			this.m_txtResizeW.Name = "m_txtResizeW";
+			this.m_txtResizeW.Size = new System.Drawing.Size(60, 20);
+			this.m_txtResizeW.TabIndex = 20;
+			this.m_txtResizeW.Visible = false;
+			//
+			// m_lblResizeH
+			//
+			this.m_lblResizeH.AutoSize = true;
+			this.m_lblResizeH.Location = new System.Drawing.Point(98, 43);
+			this.m_lblResizeH.Name = "m_lblResizeH";
+			this.m_lblResizeH.Size = new System.Drawing.Size(20, 13);
+			this.m_lblResizeH.TabIndex = 21;
+			this.m_lblResizeH.Text = "H:";
+			this.m_lblResizeH.Visible = false;
+			//
+			// m_txtResizeH
+			//
+			this.m_txtResizeH.Location = new System.Drawing.Point(115, 39);
+			this.m_txtResizeH.Name = "m_txtResizeH";
+			this.m_txtResizeH.Size = new System.Drawing.Size(60, 20);
+			this.m_txtResizeH.TabIndex = 22;
+			this.m_txtResizeH.Visible = false;
+			//
+			// m_btnResize
+			//
+			this.m_btnResize.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnResize.Location = new System.Drawing.Point(185, 38);
+			this.m_btnResize.Name = "m_btnResize";
+			this.m_btnResize.Size = new System.Drawing.Size(90, 23);
+			this.m_btnResize.TabIndex = 23;
+			this.m_btnResize.Text = "Resize";
+			this.m_btnResize.UseVisualStyleBackColor = false;
+			this.m_btnResize.Visible = false;
+			//
+			// m_lblRotate
+			//
+			this.m_lblRotate.AutoSize = true;
+			this.m_lblRotate.Location = new System.Drawing.Point(8, 73);
+			this.m_lblRotate.Name = "m_lblRotate";
+			this.m_lblRotate.Size = new System.Drawing.Size(30, 13);
+			this.m_lblRotate.TabIndex = 24;
+			this.m_lblRotate.Text = "Deg:";
+			this.m_lblRotate.Visible = false;
+			//
+			// m_txtRotate
+			//
+			this.m_txtRotate.Location = new System.Drawing.Point(40, 69);
+			this.m_txtRotate.Name = "m_txtRotate";
+			this.m_txtRotate.Size = new System.Drawing.Size(60, 20);
+			this.m_txtRotate.TabIndex = 25;
+			this.m_txtRotate.Visible = false;
+			//
+			// m_btnRotate
+			//
+			this.m_btnRotate.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnRotate.Location = new System.Drawing.Point(185, 68);
+			this.m_btnRotate.Name = "m_btnRotate";
+			this.m_btnRotate.Size = new System.Drawing.Size(90, 23);
+			this.m_btnRotate.TabIndex = 26;
+			this.m_btnRotate.Text = "Rotate";
+			this.m_btnRotate.UseVisualStyleBackColor = false;
+			this.m_btnRotate.Visible = false;
+			//
+			// m_lblNativeActions
+			//
+			this.m_lblNativeActions.AutoSize = true;
+			this.m_lblNativeActions.Location = new System.Drawing.Point(8, 112);
+			this.m_lblNativeActions.Name = "m_lblNativeActions";
+			this.m_lblNativeActions.Size = new System.Drawing.Size(170, 13);
+			this.m_lblNativeActions.TabIndex = 27;
+			this.m_lblNativeActions.Text = "Native Window Actions (HWND):";
+			this.m_lblNativeActions.Visible = false;
+			//
+			// m_btnNativeEnable
+			//
+			this.m_btnNativeEnable.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnNativeEnable.Location = new System.Drawing.Point(8, 132);
+			this.m_btnNativeEnable.Name = "m_btnNativeEnable";
+			this.m_btnNativeEnable.Size = new System.Drawing.Size(90, 23);
+			this.m_btnNativeEnable.TabIndex = 28;
+			this.m_btnNativeEnable.Text = "Enable";
+			this.m_btnNativeEnable.UseVisualStyleBackColor = false;
+			this.m_btnNativeEnable.Visible = false;
+			//
+			// m_btnNativeDisable
+			//
+			this.m_btnNativeDisable.BackColor = System.Drawing.Color.FromArgb(255, 224, 178);
+			this.m_btnNativeDisable.Location = new System.Drawing.Point(104, 132);
+			this.m_btnNativeDisable.Name = "m_btnNativeDisable";
+			this.m_btnNativeDisable.Size = new System.Drawing.Size(90, 23);
+			this.m_btnNativeDisable.TabIndex = 29;
+			this.m_btnNativeDisable.Text = "Disable";
+			this.m_btnNativeDisable.UseVisualStyleBackColor = false;
+			this.m_btnNativeDisable.Visible = false;
+			//
 			// UiaPropertyViewControl
 			//
 			this.Controls.Add(this.m_tabMain);
@@ -332,5 +571,25 @@ namespace DH.Window.Analyst.UI.Controls {
 		private System.Windows.Forms.Button m_btnSetValue;
 		private System.Windows.Forms.Label m_lblNoAction;
 		private System.Windows.Forms.Label m_lblActionStatus;
+		private System.Windows.Forms.Button m_btnMinimize;
+		private System.Windows.Forms.Button m_btnMaximize;
+		private System.Windows.Forms.Button m_btnRestore;
+		private System.Windows.Forms.Button m_btnClose;
+		private System.Windows.Forms.Label m_lblMoveX;
+		private System.Windows.Forms.TextBox m_txtMoveX;
+		private System.Windows.Forms.Label m_lblMoveY;
+		private System.Windows.Forms.TextBox m_txtMoveY;
+		private System.Windows.Forms.Button m_btnMove;
+		private System.Windows.Forms.Label m_lblResizeW;
+		private System.Windows.Forms.TextBox m_txtResizeW;
+		private System.Windows.Forms.Label m_lblResizeH;
+		private System.Windows.Forms.TextBox m_txtResizeH;
+		private System.Windows.Forms.Button m_btnResize;
+		private System.Windows.Forms.Label m_lblRotate;
+		private System.Windows.Forms.TextBox m_txtRotate;
+		private System.Windows.Forms.Button m_btnRotate;
+		private System.Windows.Forms.Label m_lblNativeActions;
+		private System.Windows.Forms.Button m_btnNativeEnable;
+		private System.Windows.Forms.Button m_btnNativeDisable;
 	}
 }

@@ -26,6 +26,35 @@ static volatile LONG g_lRunning = 0;
 #define HOOKNATIVE_SENDER_BATCH_MAX 64
 #define HOOKNATIVE_SENDER_POLL_MS 50
 
+#define HOOKNATIVE_WM_WINDOWPOSCHANGED 0x0047
+#define HOOKNATIVE_WM_DPICHANGED 0x02E0
+
+// only WM_WINDOWPOSCHANGED/WM_DPICHANGED point at a struct instead of packing values directly into wParam/lParam,
+// and that pointer is only valid in this (target) process — decode it here before it crosses into the managed side
+static void DecodeLayoutMessage(HookNativeMessageEntry& entry) {
+	entry.bhasdecodedrect = FALSE;
+	entry.nrectleft = entry.nrecttop = entry.nrectright = entry.nrectbottom = 0;
+	entry.ndpi = 0;
+
+	if (entry.nmessage == HOOKNATIVE_WM_WINDOWPOSCHANGED) {
+		const WINDOWPOS* pwindowpos = (const WINDOWPOS*) entry.lparam;
+		entry.bhasdecodedrect = TRUE;
+		entry.nrectleft = pwindowpos->x;
+		entry.nrecttop = pwindowpos->y;
+		entry.nrectright = pwindowpos->x + pwindowpos->cx;
+		entry.nrectbottom = pwindowpos->y + pwindowpos->cy;
+	}
+	else if (entry.nmessage == HOOKNATIVE_WM_DPICHANGED) {
+		const RECT* prect = (const RECT*) entry.lparam;
+		entry.bhasdecodedrect = TRUE;
+		entry.nrectleft = prect->left;
+		entry.nrecttop = prect->top;
+		entry.nrectright = prect->right;
+		entry.nrectbottom = prect->bottom;
+		entry.ndpi = LOWORD(entry.wparam);
+	}
+}
+
 static DWORD WINAPI SenderThreadProc(LPVOID pvparam) {
 	UNREFERENCED_PARAMETER(pvparam);
 
@@ -77,6 +106,7 @@ LRESULT CALLBACK HookNative_CallWndProc(int ncode, WPARAM wparam, LPARAM lparam)
 		entry.ndwtimestamp = GetTickCount();
 		entry.ndwthreadid = GetCurrentThreadId();
 		entry.bposted = FALSE;
+		DecodeLayoutMessage(entry);
 
 		g_queue.Push(entry);
 	}
@@ -96,6 +126,7 @@ LRESULT CALLBACK HookNative_GetMsgProc(int ncode, WPARAM wparam, LPARAM lparam) 
 		entry.ndwtimestamp = GetTickCount();
 		entry.ndwthreadid = GetCurrentThreadId();
 		entry.bposted = TRUE;
+		DecodeLayoutMessage(entry);
 
 		g_queue.Push(entry);
 	}

@@ -38,11 +38,18 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_colHandle = new System.Windows.Forms.ColumnHeader();
 			this.m_colWParam = new System.Windows.Forms.ColumnHeader();
 			this.m_colLParam = new System.Windows.Forms.ColumnHeader();
+			this.m_colDetails = new System.Windows.Forms.ColumnHeader();
+			this.m_btnLayoutFilter = new System.Windows.Forms.Button();
+			this.m_btnSelectAll = new System.Windows.Forms.Button();
+			this.m_btnDeselectAll = new System.Windows.Forms.Button();
+			this.m_btnDefaultFilter = new System.Windows.Forms.Button();
+			this.m_panelFilterOptions = new System.Windows.Forms.Panel();
 			this.m_panelTop.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize) (this.m_splitMessages)).BeginInit();
 			this.m_splitMessages.Panel1.SuspendLayout();
 			this.m_splitMessages.Panel2.SuspendLayout();
 			this.m_splitMessages.SuspendLayout();
+			this.m_panelFilterOptions.SuspendLayout();
 			this.SuspendLayout();
 			//
 			// m_panelTop
@@ -122,6 +129,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			// m_splitMessages.Panel1
 			//
 			this.m_splitMessages.Panel1.Controls.Add(this.m_clbFilter);
+			this.m_splitMessages.Panel1.Controls.Add(this.m_panelFilterOptions);
 			//
 			// m_splitMessages.Panel2
 			//
@@ -148,7 +156,8 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_colMessage,
 			this.m_colHandle,
 			this.m_colWParam,
-			this.m_colLParam});
+			this.m_colLParam,
+			this.m_colDetails});
 			this.m_lsvMessages.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.m_lsvMessages.FullRowSelect = true;
 			this.m_lsvMessages.Location = new System.Drawing.Point(0, 0);
@@ -183,6 +192,65 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_colLParam.Text = "LParam";
 			this.m_colLParam.Width = 110;
 			//
+			// m_colDetails
+			//
+			this.m_colDetails.Text = "Details";
+			this.m_colDetails.Width = 220;
+			//
+			// m_btnSelectAll
+			//
+			this.m_btnSelectAll.Location = new System.Drawing.Point(3, 3);
+			this.m_btnSelectAll.Name = "m_btnSelectAll";
+			this.m_btnSelectAll.Size = new System.Drawing.Size(180, 23);
+			this.m_btnSelectAll.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
+			this.m_btnSelectAll.TabIndex = 0;
+			this.m_btnSelectAll.Text = "Select All";
+			this.m_btnSelectAll.UseVisualStyleBackColor = true;
+			//
+			// m_btnDeselectAll
+			//
+			this.m_btnDeselectAll.Location = new System.Drawing.Point(3, 29);
+			this.m_btnDeselectAll.Name = "m_btnDeselectAll";
+			this.m_btnDeselectAll.Size = new System.Drawing.Size(180, 23);
+			this.m_btnDeselectAll.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
+			this.m_btnDeselectAll.TabIndex = 1;
+			this.m_btnDeselectAll.Text = "Deselect All";
+			this.m_btnDeselectAll.UseVisualStyleBackColor = true;
+			//
+			// m_btnDefaultFilter
+			//
+			this.m_btnDefaultFilter.Location = new System.Drawing.Point(3, 55);
+			this.m_btnDefaultFilter.Name = "m_btnDefaultFilter";
+			this.m_btnDefaultFilter.Size = new System.Drawing.Size(180, 23);
+			this.m_btnDefaultFilter.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
+			this.m_btnDefaultFilter.TabIndex = 2;
+			this.m_btnDefaultFilter.Text = "Default";
+			this.m_btnDefaultFilter.UseVisualStyleBackColor = true;
+			//
+			// m_btnLayoutFilter
+			//
+			this.m_btnLayoutFilter.Location = new System.Drawing.Point(3, 81);
+			this.m_btnLayoutFilter.Name = "m_btnLayoutFilter";
+			this.m_btnLayoutFilter.Size = new System.Drawing.Size(180, 23);
+			this.m_btnLayoutFilter.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
+			this.m_btnLayoutFilter.TabIndex = 3;
+			this.m_btnLayoutFilter.Text = "Layout/DPI Only";
+			this.m_btnLayoutFilter.UseVisualStyleBackColor = true;
+			//
+			// m_panelFilterOptions
+			//
+			// sits below the filter checklist (same Panel1) rather than next to the message list,
+			// since these buttons act on the checklist selection; more presets can be added later without crowding it
+			this.m_panelFilterOptions.Controls.Add(this.m_btnLayoutFilter);
+			this.m_panelFilterOptions.Controls.Add(this.m_btnDefaultFilter);
+			this.m_panelFilterOptions.Controls.Add(this.m_btnDeselectAll);
+			this.m_panelFilterOptions.Controls.Add(this.m_btnSelectAll);
+			this.m_panelFilterOptions.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.m_panelFilterOptions.Location = new System.Drawing.Point(0, 357);
+			this.m_panelFilterOptions.Name = "m_panelFilterOptions";
+			this.m_panelFilterOptions.Size = new System.Drawing.Size(190, 107);
+			this.m_panelFilterOptions.TabIndex = 1;
+			//
 			// MessageLogControl
 			//
 			this.Controls.Add(this.m_splitMessages);
@@ -195,6 +263,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_splitMessages.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize) (this.m_splitMessages)).EndInit();
 			this.m_splitMessages.ResumeLayout(false);
+			this.m_panelFilterOptions.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -216,5 +285,11 @@ namespace DH.Window.Analyst.UI.Controls {
 		private System.Windows.Forms.ColumnHeader m_colHandle;
 		private System.Windows.Forms.ColumnHeader m_colWParam;
 		private System.Windows.Forms.ColumnHeader m_colLParam;
+		private System.Windows.Forms.ColumnHeader m_colDetails;
+		private System.Windows.Forms.Button m_btnLayoutFilter;
+		private System.Windows.Forms.Panel m_panelFilterOptions;
+		private System.Windows.Forms.Button m_btnSelectAll;
+		private System.Windows.Forms.Button m_btnDeselectAll;
+		private System.Windows.Forms.Button m_btnDefaultFilter;
 	}
 }

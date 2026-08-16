@@ -14,6 +14,10 @@ namespace DH.Window.Analyst.Logging {
 		private static FileLogWriter s_writer;
 		private static LogLevel s_level = LogLevel.All;
 
+		// raised for every level regardless of s_level/s_writer, so an in-app viewer (AppLogViewerControl) can subscribe
+		// before SetLogging() runs and apply its own display filter independent of the file-writer's level
+		public static event Action<LogEntry> EntryLogged;
+
 		// strlogdirectory is a folder, not a file path — FileLogWriter writes one dated file per day inside it
 		public static void SetLogging(LogTarget target, string strappname, string strlogdirectory, LogLevel level = LogLevel.All, int nretentiondays = 7) {
 			s_writer = new FileLogWriter(target, strappname, strlogdirectory, nretentiondays);
@@ -42,6 +46,8 @@ namespace DH.Window.Analyst.Logging {
 		}
 
 		private static void Write(LogLevel level, string strtag, string strlog) {
+			EntryLogged?.Invoke(new LogEntry(DateTime.Now, level, strlog));
+
 			if (s_writer == null || (s_level & level) != level) {
 				return;
 			}

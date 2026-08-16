@@ -25,7 +25,7 @@ namespace DH.Window.Analyst.UI.Controls {
 		private void InitializeComponent() {
 			this.components = new System.ComponentModel.Container();
 			this.m_panelFilter = new System.Windows.Forms.Panel();
-			this.m_btnExport = new System.Windows.Forms.Button();
+			this.m_ctrlFinder = new DH.Window.Analyst.UI.Controls.FinderToolButton();
 			this.m_txtFilter = new System.Windows.Forms.TextBox();
 			this.m_lblFilter = new System.Windows.Forms.Label();
 			this.m_trvWindows = new System.Windows.Forms.TreeView();
@@ -39,7 +39,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			// m_panelFilter
 			//
 			this.m_panelFilter.Controls.Add(this.m_txtFilter);
-			this.m_panelFilter.Controls.Add(this.m_btnExport);
+			this.m_panelFilter.Controls.Add(this.m_ctrlFinder);
 			this.m_panelFilter.Controls.Add(this.m_lblFilter);
 			this.m_panelFilter.Dock = System.Windows.Forms.DockStyle.Top;
 			this.m_panelFilter.Location = new System.Drawing.Point(0, 0);
@@ -47,15 +47,15 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_panelFilter.Size = new System.Drawing.Size(320, 24);
 			this.m_panelFilter.TabIndex = 0;
 			//
-			// m_btnExport
+			// m_ctrlFinder
 			//
-			this.m_btnExport.Dock = System.Windows.Forms.DockStyle.Right;
-			this.m_btnExport.Location = new System.Drawing.Point(240, 0);
-			this.m_btnExport.Name = "m_btnExport";
-			this.m_btnExport.Size = new System.Drawing.Size(80, 24);
-			this.m_btnExport.TabIndex = 2;
-			this.m_btnExport.Text = "Export...";
-			this.m_btnExport.UseVisualStyleBackColor = true;
+			this.m_ctrlFinder.Dock = System.Windows.Forms.DockStyle.Right;
+			this.m_ctrlFinder.Location = new System.Drawing.Point(230, 0);
+			this.m_ctrlFinder.Name = "m_ctrlFinder";
+			this.m_ctrlFinder.Size = new System.Drawing.Size(90, 24);
+			this.m_ctrlFinder.TabIndex = 2;
+			this.m_ctrlFinder.Text = "Instant Find";
+			this.m_ctrlFinder.UseVisualStyleBackColor = true;
 			//
 			// m_txtFilter
 			//
@@ -129,7 +129,7 @@ namespace DH.Window.Analyst.UI.Controls {
 		private System.Windows.Forms.Panel m_panelFilter;
 		private System.Windows.Forms.Label m_lblFilter;
 		private System.Windows.Forms.TextBox m_txtFilter;
-		private System.Windows.Forms.Button m_btnExport;
+		private DH.Window.Analyst.UI.Controls.FinderToolButton m_ctrlFinder;
 		private System.Windows.Forms.TreeView m_trvWindows;
 		private System.Windows.Forms.ImageList m_ilIcons;
 		private System.Windows.Forms.ContextMenuStrip m_ctxWindows;
