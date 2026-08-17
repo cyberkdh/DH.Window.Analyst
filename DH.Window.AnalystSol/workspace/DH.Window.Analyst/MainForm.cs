@@ -8,6 +8,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DH.Window.Analyst.Logging;
@@ -31,6 +34,17 @@ namespace DH.Window.Analyst {
 
 		public MainForm() {
 			InitializeComponent();
+
+			// Icon.ExtractAssociatedIcon only returns a single downscaled frame (loses the hand-tuned 16/20/24/32px frames baked into AppIcon.ico),
+			// so the titlebar/taskbar icon is loaded from the embedded multi-resolution .ico directly to keep all frame sizes intact
+			try {
+				using (Stream streamicon = Assembly.GetExecutingAssembly().GetManifestResourceStream("DH.Window.Analyst.Resources.AppIcon.ico")) {
+					Icon = new Icon(streamicon);
+				}
+			}
+			catch (Exception ex) {
+				AppLog.w($"Failed to load application icon: {ex.Message}");
+			}
 
 			m_bGroupByProcess = AppSettings.Get().GroupByProcessDefault;
 			m_toolBtnGroupByProcess.Text = m_bGroupByProcess == true ? "Group: Process" : "Group: None";
@@ -210,7 +224,8 @@ namespace DH.Window.Analyst {
 				m_ctrlWorkspace.ShowTabListPopup(m_toolMain.PointToScreen(new System.Drawing.Point(m_toolBtnTabList.Bounds.Left, m_toolMain.Height)));
 			}
 			else if (sender == m_menuHelp_About) {
-				MessageBox.Show(this, "DH.Window.Analyst\r\nWindows UI structure analyzer", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+				MessageBox.Show(this, $"DH.Window.Analyst\r\nWindows UI structure analyzer\r\n\r\nVersion {version}", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 		}
 	}

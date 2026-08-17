@@ -12,12 +12,18 @@
     <BaseOutputPath>..\..\output\</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- multi-resolution icon frames (16/20/24/32/40/48/64/96/128/256) must be loaded from the raw .ico via new Icon(stream), not Icon.ExtractAssociatedIcon (which only returns a single downscaled frame) -->
+    <EmbeddedResource Include="Resources\AppIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>

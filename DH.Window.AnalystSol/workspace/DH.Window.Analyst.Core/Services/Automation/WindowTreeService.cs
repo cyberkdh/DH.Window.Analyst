@@ -91,10 +91,14 @@ namespace DH.Window.Analyst.Services.Automation {
 		public IEnumerable<TopLevelWindowItem> GetTopLevelWindowInfos() {
 			List<TopLevelWindowItem> listitems = new List<TopLevelWindowItem>();
 
+			uint nownprocessid = (uint) Process.GetCurrentProcess().Id;
 			NativeMethods.EnumWindows((hwnd, lparam) => {
 				if (NativeMethods.IsWindowVisible(hwnd) == true && NativeMethods.GetWindow(hwnd, NativeMethods.GW_OWNER) == IntPtr.Zero) {
 					if (NativeMethods.GetWindowTextLength(hwnd) > 0) {
-						listitems.Add(BuildWindowItem(hwnd));
+						NativeMethods.GetWindowThreadProcessId(hwnd, out uint nprocessid);
+						if (nprocessid != nownprocessid) {
+							listitems.Add(BuildWindowItem(hwnd));
+						}
 					}
 				}
 				return true;
