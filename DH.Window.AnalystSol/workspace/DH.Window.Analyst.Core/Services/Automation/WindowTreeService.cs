@@ -120,7 +120,10 @@ namespace DH.Window.Analyst.Services.Automation {
 			return NativeMethods.GetForegroundWindow();
 		}
 
-		// immediate children only (GW_CHILD + GW_HWNDNEXT siblings), matches lazy tree loading
+		// true WS_CHILD descendants (GW_CHILD + GW_HWNDNEXT siblings) plus top-level windows owned by this one (GWL_HWNDPARENT,
+		// e.g. modal dialogs, tooltips, IME windows) — the latter are never reachable via GW_CHILD since they're separate
+		// top-level HWNDs, but nesting them here lets the tree (and Sync) follow a window into its own dialogs; IsOwnedWindow
+		// on the resulting item marks which ones these are so the UI can render them distinctly
 		public IEnumerable<TopLevelWindowItem> GetChildWindowInfos(IntPtr parenthandle) {
 			List<TopLevelWindowItem> listitems = new List<TopLevelWindowItem>();
 
@@ -129,6 +132,23 @@ namespace DH.Window.Analyst.Services.Automation {
 				listitems.Add(BuildWindowItem(hchild));
 				hchild = NativeMethods.GetWindow(hchild, NativeMethods.GW_HWNDNEXT);
 			}
+
+			return listitems;
+		}
+
+		// separate top-level windows connected via GWL_HWNDPARENT owner (modal dialogs, tooltips, IME windows) rather than
+		// true WS_CHILD descendants of parenthandle — kept distinct from GetChildWindowInfos so the tree UI can group them
+		// separately instead of nesting them among real children, which would imply a parent-child relationship that
+		// doesn't actually exist
+		public IEnumerable<TopLevelWindowItem> GetOwnedWindowInfos(IntPtr parenthandle) {
+			List<TopLevelWindowItem> listitems = new List<TopLevelWindowItem>();
+
+			NativeMethods.EnumWindows((hwnd, lparam) => {
+				if (hwnd != parenthandle && NativeMethods.GetWindow(hwnd, NativeMethods.GW_OWNER) == parenthandle) {
+					listitems.Add(BuildWindowItem(hwnd));
+				}
+				return true;
+			}, IntPtr.Zero);
 
 			return listitems;
 		}
@@ -166,6 +186,40 @@ namespace DH.Window.Analyst.Services.Automation {
 			}
 
 			return BuildWindowItem(hwnd);
+		}
+
+		// deepest descendant of roothandle at the given screen point, including disabled windows — WindowFromPoint silently skips
+		// disabled windows, which hides a window's own controls from hit-testing while it's showing its own modal dialog (the owner
+		// is disabled for the duration); ChildWindowFromPointEx has no such skip, so this walks down one level at a time instead
+		// walks GW_CHILD/GW_HWNDNEXT by hand (same enumeration GetChildWindowInfos uses for the tree itself) instead of
+		// ChildWindowFromPointEx, checking each visible child's rect for containment and taking the first match — GW_CHILD
+		// enumerates in top-to-bottom z-order, so the first containing child is also the topmost one at that point
+		public TopLevelWindowItem GetDescendantAtScreenPointIncludingDisabled(IntPtr roothandle, System.Drawing.Point point) {
+			IntPtr hwndcurrent = roothandle;
+
+			while (true) {
+				IntPtr hwndnext = IntPtr.Zero;
+				IntPtr hwndchild = NativeMethods.GetWindow(hwndcurrent, NativeMethods.GW_CHILD);
+
+				while (hwndchild != IntPtr.Zero) {
+					if (NativeMethods.IsWindowVisible(hwndchild) == true && NativeMethods.GetWindowRect(hwndchild, out NativeMethods.RECT rect) == true) {
+						if (point.X >= rect.Left && point.X < rect.Right && point.Y >= rect.Top && point.Y < rect.Bottom) {
+							hwndnext = hwndchild;
+							break;
+						}
+					}
+
+					hwndchild = NativeMethods.GetWindow(hwndchild, NativeMethods.GW_HWNDNEXT);
+				}
+
+				if (hwndnext == IntPtr.Zero) {
+					break;
+				}
+
+				hwndcurrent = hwndnext;
+			}
+
+			return BuildWindowItem(hwndcurrent);
 		}
 
 		// top-down parent chain from roothandle's direct child down to handle; empty if handle never reaches roothandle (256-hop safety cap against parent-chain cycles/corruption)
@@ -338,7 +392,9 @@ namespace DH.Window.Analyst.Services.Automation {
 			NativeMethods.GetWindowThreadProcessId(hwnd, out uint nprocessid);
 			string strprocessname = GetProcessName((int) nprocessid, out ImageSource icon);
 
-			return new TopLevelWindowItem(hwnd, sbtitle.ToString(), sbclassname.ToString(), strprocessname, (int) nprocessid, icon);
+			bool bisownedwindow = NativeMethods.GetWindow(hwnd, NativeMethods.GW_OWNER) != IntPtr.Zero;
+
+			return new TopLevelWindowItem(hwnd, sbtitle.ToString(), sbclassname.ToString(), strprocessname, (int) nprocessid, icon, bisownedwindow);
 		}
 
 		private string GetProcessName(int nprocessid, out ImageSource icon) {
@@ -559,6 +615,45 @@ namespace DH.Window.Analyst.Services.Automation {
 			}
 
 			return listnames;
+		}
+
+		// UI Automation element under the given screen point (Inspector "Sync" hover); null if none found or the cross-process call throws
+		public AutomationElement GetElementAtScreenPoint(System.Drawing.Point point) {
+			try {
+				return AutomationElement.FromPoint(new System.Windows.Point(point.X, point.Y));
+			}
+			catch (Exception ex) {
+				AppLog.d($"GetElementAtScreenPoint failed: {ex.Message}");
+				return null;
+			}
+		}
+
+		// top-down parent chain from rootelement's direct child down to element (RawView, matching GetChildren's TrueCondition scope); empty if
+		// element never reaches rootelement (256-hop safety cap, mirroring GetAncestorChainToRoot's HWND version)
+		public IReadOnlyList<AutomationElement> GetElementAncestorChainToRoot(AutomationElement element, AutomationElement rootelement) {
+			List<AutomationElement> listchain = new List<AutomationElement>();
+			if (element == null || rootelement == null) {
+				return listchain;
+			}
+
+			TreeWalker walker = TreeWalker.RawViewWalker;
+			AutomationElement elementcurrent = element;
+			int nhopcount = 0;
+
+			try {
+				while (elementcurrent != null && System.Windows.Automation.Automation.Compare(elementcurrent, rootelement) == false && nhopcount < 256) {
+					listchain.Insert(0, elementcurrent);
+					elementcurrent = walker.GetParent(elementcurrent);
+					nhopcount++;
+				}
+			}
+			catch (Exception ex) {
+				// unresponsive/restricted elements along the ancestor walk — treat as "not reachable" rather than propagating
+				AppLog.d($"GetElementAncestorChainToRoot failed: {ex.Message}");
+				return new List<AutomationElement>();
+			}
+
+			return elementcurrent != null && System.Windows.Automation.Automation.Compare(elementcurrent, rootelement) == true ? listchain : new List<AutomationElement>();
 		}
 
 		public IEnumerable<AutomationElement> GetChildren(AutomationElement parent) {

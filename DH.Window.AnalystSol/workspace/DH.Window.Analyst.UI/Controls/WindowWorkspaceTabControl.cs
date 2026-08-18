@@ -36,6 +36,18 @@ namespace DH.Window.Analyst.UI.Controls {
 			};
 			m_ctrlPropertyView.WindowReferenceActivated += (sender, handle) => WindowReferenceActivated?.Invoke(this, handle);
 			m_timerWindowCheck.Tick += (sender, e) => CheckRootWindowStillExists();
+
+			m_btnToggleMode.Click += (sender, e) => {
+				m_ctrlHierarchy.ToggleMode();
+				m_btnToggleMode.Text = m_ctrlHierarchy.UiaMode == true ? "UI Element" : "Win32";
+			};
+			m_btnHighlight.Click += (sender, e) => m_ctrlHierarchy.HighlightSelected();
+			m_btnForeground.Click += (sender, e) => m_ctrlHierarchy.ActivateSelected();
+			m_chkSync.CheckedChanged += (sender, e) => m_ctrlHierarchy.SetSyncEnabled(m_chkSync.Checked);
+			// a Sync click (or Esc) stops Sync from inside m_ctrlHierarchy itself — reflect that back onto the checkbox so its
+			// visual state doesn't stay stuck ON; this also re-invokes SetSyncEnabled(false) via CheckedChanged above, which is
+			// a harmless no-op (timer/hook are already stopped)
+			m_ctrlHierarchy.SyncStoppedExternally += (sender, e) => m_chkSync.Checked = false;
 		}
 
 		public void Initialize(IWindowTreeService treeservice) {

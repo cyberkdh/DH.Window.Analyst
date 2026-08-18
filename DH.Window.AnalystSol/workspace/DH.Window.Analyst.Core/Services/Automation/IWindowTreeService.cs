@@ -47,8 +47,12 @@ namespace DH.Window.Analyst.Services.Automation {
 		// the real Win32 parent of every top-level window (GetDesktopWindow) — has its own handle/class/rect like any other window
 		TopLevelWindowItem GetDesktopWindowInfo();
 
-		// immediate child windows only (Win32 native hierarchy), for the Native Window tree
+		// immediate WS_CHILD windows only (Win32 native hierarchy), for the Native Window tree
 		IEnumerable<TopLevelWindowItem> GetChildWindowInfos(IntPtr parenthandle);
+
+		// separate top-level windows owned by parenthandle (modal dialogs, tooltips, IME windows) — not true WS_CHILD
+		// descendants, kept distinct so the tree can group them separately instead of nesting them among real children
+		IEnumerable<TopLevelWindowItem> GetOwnedWindowInfos(IntPtr parenthandle);
 
 		// converts a single selected window only; null on failure
 		AutomationElement CreateElementFromHandle(IntPtr handle);
@@ -66,5 +70,16 @@ namespace DH.Window.Analyst.Services.Automation {
 
 		// rect/style/exstyle/thread-id only — cheap enough to call every hover-poll tick, unlike GetNativeWindowDetails
 		WindowQuickInfo GetWindowQuickInfo(IntPtr handle);
+
+		// UI Automation element under the given screen point (Inspector "Sync" hover); null if none found or the cross-process call throws
+		AutomationElement GetElementAtScreenPoint(System.Drawing.Point point);
+
+		// walks the UIA parent chain (RawView, matching GetChildren's TrueCondition scope) from element up to (but not including) rootelement,
+		// returned top-down (root's direct child first, element last); empty if element is not actually a descendant of rootelement
+		IReadOnlyList<AutomationElement> GetElementAncestorChainToRoot(AutomationElement element, AutomationElement rootelement);
+
+		// deepest descendant of roothandle at the given screen point, walking child windows even if disabled — unlike GetWindowAtScreenPoint
+		// (WindowFromPoint), this does not skip disabled windows, so it still finds the target while it's showing its own modal dialog
+		TopLevelWindowItem GetDescendantAtScreenPointIncludingDisabled(IntPtr roothandle, System.Drawing.Point point);
 	}
 }

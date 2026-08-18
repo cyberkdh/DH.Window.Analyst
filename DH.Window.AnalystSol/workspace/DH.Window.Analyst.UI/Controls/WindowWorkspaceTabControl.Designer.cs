@@ -24,6 +24,11 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_tabMain = new System.Windows.Forms.TabControl();
 			this.m_tabPageInspector = new System.Windows.Forms.TabPage();
 			this.m_ctrlBreadcrumb = new DH.Window.Analyst.UI.Controls.BreadcrumbControl();
+			this.m_panelHierarchyToolbar = new System.Windows.Forms.FlowLayoutPanel();
+			this.m_btnToggleMode = new System.Windows.Forms.Button();
+			this.m_btnHighlight = new System.Windows.Forms.Button();
+			this.m_btnForeground = new System.Windows.Forms.Button();
+			this.m_chkSync = new System.Windows.Forms.CheckBox();
 			this.m_splitContent = new System.Windows.Forms.SplitContainer();
 			this.m_ctrlHierarchy = new DH.Window.Analyst.UI.Controls.WindowHierarchyControl();
 			this.m_ctrlPropertyView = new DH.Window.Analyst.UI.Controls.PropertyViewControl();
@@ -40,6 +45,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_panelClosedBanner.SuspendLayout();
 			this.m_tabMain.SuspendLayout();
 			this.m_tabPageInspector.SuspendLayout();
+			this.m_panelHierarchyToolbar.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.m_splitContent)).BeginInit();
 			this.m_splitContent.Panel1.SuspendLayout();
 			this.m_splitContent.Panel2.SuspendLayout();
@@ -65,6 +71,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			// m_tabPageInspector
 			//
 			this.m_tabPageInspector.Controls.Add(this.m_splitContent);
+			this.m_tabPageInspector.Controls.Add(this.m_panelHierarchyToolbar);
 			this.m_tabPageInspector.Controls.Add(this.m_ctrlBreadcrumb);
 			this.m_tabPageInspector.Location = new System.Drawing.Point(4, 22);
 			this.m_tabPageInspector.Name = "m_tabPageInspector";
@@ -81,10 +88,64 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_ctrlBreadcrumb.Size = new System.Drawing.Size(692, 28);
 			this.m_ctrlBreadcrumb.TabIndex = 0;
 			//
+			// m_panelHierarchyToolbar
+			//
+			this.m_panelHierarchyToolbar.Controls.Add(this.m_btnToggleMode);
+			this.m_panelHierarchyToolbar.Controls.Add(this.m_btnHighlight);
+			this.m_panelHierarchyToolbar.Controls.Add(this.m_btnForeground);
+			this.m_panelHierarchyToolbar.Controls.Add(this.m_chkSync);
+			this.m_panelHierarchyToolbar.Dock = System.Windows.Forms.DockStyle.Top;
+			this.m_panelHierarchyToolbar.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+			this.m_panelHierarchyToolbar.WrapContents = true;
+			this.m_panelHierarchyToolbar.AutoSize = true;
+			this.m_panelHierarchyToolbar.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.m_panelHierarchyToolbar.Location = new System.Drawing.Point(0, 28);
+			this.m_panelHierarchyToolbar.Name = "m_panelHierarchyToolbar";
+			this.m_panelHierarchyToolbar.Size = new System.Drawing.Size(692, 30);
+			this.m_panelHierarchyToolbar.TabIndex = 2;
+			//
+			// m_btnToggleMode
+			//
+			this.m_btnToggleMode.Margin = new System.Windows.Forms.Padding(3);
+			this.m_btnToggleMode.Name = "m_btnToggleMode";
+			this.m_btnToggleMode.Size = new System.Drawing.Size(90, 23);
+			this.m_btnToggleMode.TabIndex = 0;
+			this.m_btnToggleMode.Text = "Win32";
+			this.m_btnToggleMode.UseVisualStyleBackColor = true;
+			//
+			// m_btnHighlight
+			//
+			this.m_btnHighlight.Margin = new System.Windows.Forms.Padding(3);
+			this.m_btnHighlight.Name = "m_btnHighlight";
+			this.m_btnHighlight.Size = new System.Drawing.Size(90, 23);
+			this.m_btnHighlight.TabIndex = 1;
+			this.m_btnHighlight.Text = "Highlight";
+			this.m_btnHighlight.UseVisualStyleBackColor = true;
+			//
+			// m_btnForeground
+			//
+			this.m_btnForeground.Margin = new System.Windows.Forms.Padding(3);
+			this.m_btnForeground.Name = "m_btnForeground";
+			this.m_btnForeground.Size = new System.Drawing.Size(90, 23);
+			this.m_btnForeground.TabIndex = 2;
+			this.m_btnForeground.Text = "Foreground";
+			this.m_btnForeground.UseVisualStyleBackColor = true;
+			//
+			// m_chkSync
+			//
+			this.m_chkSync.Appearance = System.Windows.Forms.Appearance.Button;
+			this.m_chkSync.Margin = new System.Windows.Forms.Padding(3);
+			this.m_chkSync.Name = "m_chkSync";
+			this.m_chkSync.Size = new System.Drawing.Size(90, 23);
+			this.m_chkSync.TabIndex = 3;
+			this.m_chkSync.Text = "Sync";
+			this.m_chkSync.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.m_chkSync.UseVisualStyleBackColor = true;
+			//
 			// m_splitContent
 			//
 			this.m_splitContent.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.m_splitContent.Location = new System.Drawing.Point(0, 28);
+			this.m_splitContent.Location = new System.Drawing.Point(0, 58);
 			this.m_splitContent.Name = "m_splitContent";
 			//
 			// m_splitContent.Panel1
@@ -213,6 +274,8 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_panelClosedBanner.PerformLayout();
 			this.m_tabMain.ResumeLayout(false);
 			this.m_tabPageInspector.ResumeLayout(false);
+			this.m_tabPageInspector.PerformLayout();
+			this.m_panelHierarchyToolbar.ResumeLayout(false);
 			this.m_splitContent.Panel1.ResumeLayout(false);
 			this.m_splitContent.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.m_splitContent)).EndInit();
@@ -229,6 +292,11 @@ namespace DH.Window.Analyst.UI.Controls {
 		private System.Windows.Forms.TabControl m_tabMain;
 		private System.Windows.Forms.TabPage m_tabPageInspector;
 		private DH.Window.Analyst.UI.Controls.BreadcrumbControl m_ctrlBreadcrumb;
+		private System.Windows.Forms.FlowLayoutPanel m_panelHierarchyToolbar;
+		private System.Windows.Forms.Button m_btnToggleMode;
+		private System.Windows.Forms.Button m_btnHighlight;
+		private System.Windows.Forms.Button m_btnForeground;
+		private System.Windows.Forms.CheckBox m_chkSync;
 		private System.Windows.Forms.SplitContainer m_splitContent;
 		private DH.Window.Analyst.UI.Controls.WindowHierarchyControl m_ctrlHierarchy;
 		private DH.Window.Analyst.UI.Controls.PropertyViewControl m_ctrlPropertyView;

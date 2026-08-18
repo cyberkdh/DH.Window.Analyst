@@ -50,6 +50,29 @@ namespace DH.Window.Analyst.UI.Overlay {
 			get { return true; }
 		}
 
+		// steady (non-fading) display for hover-follow scenarios (Sync mode) — stays lit until ShowSteadyAt moves it or HideSteady/FlashAt clears it, unlike FlashAt's one-shot fade
+		public void ShowSteadyAt(Rectangle rectscreen) {
+			m_timer.Stop();
+
+			if (rectscreen.IsEmpty == true) {
+				Hide();
+				return;
+			}
+
+			BackColor = AppSettings.Get().HighlightColor;
+			Bounds = rectscreen;
+			Opacity = INITIAL_OPACITY;
+
+			if (Visible == false) {
+				Show();
+			}
+		}
+
+		public void HideSteady() {
+			m_timer.Stop();
+			Hide();
+		}
+
 		public void FlashAt(Rectangle rectscreen) {
 			m_timer.Stop();
 
