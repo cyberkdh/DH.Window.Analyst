@@ -63,16 +63,13 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// Spy++ "Styles" tab style: each individually named flag on its own line, since the packed
-		// "0x... A | B | C" value in the grid row is too long to read at a glance
+		// Spy++ "Styles" tab style: each named flag on its own line, since the packed "0x... A | B | C" value is too long to read at a glance
 		private static void ShowFlagDetailsPopup(PropertyItem prop) {
 			string strmessage = string.Join(Environment.NewLine, prop.FlagDetails);
 			MessageBox.Show(strmessage, prop.Name, MessageBoxButtons.OK, MessageBoxIcon.None);
 		}
 
-		// "Copy" puts "Name: Value" lines on the clipboard, Spy++ style — passed as the custom copy action to
-		// ListViewRowInteractionHelper.AttachRowContextMenu since these are name/value lists, unlike the
-		// tab-delimited full-row copy the helper defaults to for multi-column lists
+		// "Copy" puts "Name: Value" lines on the clipboard, Spy++ style, unlike the helper's default tab-delimited full-row copy
 		private static void CopySelectedRows(ListView lsv) {
 			if (lsv.SelectedItems.Count == 0) {
 				return;
@@ -136,9 +133,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			RefreshWindowControlState();
 		}
 
-		// Property Compare feature: re-queries live Win32 Native Details at the moment of capture (not whatever is currently
-		// rendered) so a Snapshot always reflects the window's actual state, even if it moved/resized since the last
-		// Refresh Property — explicit trigger only, called from MainForm's "Take Property Snapshot" menu item
+		// re-queries live Win32 Native Details at capture time (not whatever is currently rendered) so a Snapshot always reflects actual state
 		public async Task<PropertySnapshot> CaptureSnapshotAsync() {
 			if (m_currentItem == null || m_treeService == null) {
 				return null;

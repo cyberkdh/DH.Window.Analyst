@@ -10,9 +10,7 @@ using System;
 using System.Drawing;
 
 namespace DH.Window.Analyst.Services.Automation {
-	// direct Win32 state mutation on a target top-level window (Show/Hide/Enable/Disable/Topmost/Move/Resize) —
-	// unlike IPatternActionService (UIA), this never crosses into another process's UIA server, but SetWindowPos/EnableWindow
-	// can still fail silently against elevated targets (UIPI), so every action is a Try* returning bool
+	// unlike IPatternActionService (UIA), SetWindowPos/EnableWindow can still fail silently against elevated targets (UIPI), so every action is a Try* returning bool
 	public interface IWindowControlService {
 		bool TryShow(IntPtr handle);
 		bool TryHide(IntPtr handle);

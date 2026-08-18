@@ -13,9 +13,7 @@ using System.Windows.Forms;
 using DH.Window.Analyst.Logging;
 
 namespace DH.Window.Analyst.Services.Automation {
-	// hook callbacks must return fast to avoid stalling system-wide input delivery, so both callbacks only branch on message type
-	// (swallow decision) and defer all real work to the UI thread via m_ctrlMarshal.BeginInvoke; every path is wrapped in try/catch
-	// so an exception here never escapes into the OS hook chain (that would break input for every process, not just this one)
+	// hook callbacks must return fast and never let an exception escape into the OS hook chain, so real work is deferred to the UI thread via m_ctrlMarshal.BeginInvoke and every path is wrapped in try/catch
 	public class GlobalPickerHookService : IGlobalPickerHookService {
 		// kept as fields, not local/anonymous delegates, so the GC can't collect them while the hooks are installed
 		private GlobalHookNativeMethods.LowLevelMouseProc m_procMouse;

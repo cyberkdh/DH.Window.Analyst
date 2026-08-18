@@ -28,18 +28,14 @@ namespace DH.Window.Analyst.UI.Controls {
 		private readonly HighlightOverlayForm m_overlayHighlight = new HighlightOverlayForm();
 
 		// Sync mode: hover-follow scoped to this tab's own root subtree only (never a desktop-wide poll), so cost stays bounded
-		// regardless of how many other tabs/windows are open — see m_timerSync.Tick => OnSyncTick
 		private readonly Timer m_timerSync = new Timer { Interval = 50 };
 		private IntPtr m_handleLastSyncTarget;
 		private AutomationElement m_elementLastSyncTarget;
 
-		// last raw cursor position seen by OnSyncTick, used to detect "mouse still moving" and skip the expensive
-		// resolution entirely while it is — see OnSyncTick
+		// last raw cursor position seen by OnSyncTick, used to detect "mouse still moving" and skip the expensive resolution while it is
 		private Point m_pointLastCursorTick;
 
-		// while Sync is on, a left-click anywhere freezes the tree on whatever is currently synced and turns Sync back off —
-		// same swallow-the-click "pick and stop" convention as MousePickerCoordinator's "Show Info on Mouse" mode, using a
-		// separate hook instance scoped to this tab's own Sync session rather than the app-wide picker's shared one
+		// while Sync is on, a left-click anywhere freezes the tree on the current target and turns Sync off, using a separate hook instance scoped to this tab
 		private readonly IGlobalPickerHookService m_hookSyncClick = new GlobalPickerHookService();
 
 		// passes the TreeNode itself (not just Tag) so the caller can walk the ancestor chain for a breadcrumb
@@ -48,8 +44,7 @@ namespace DH.Window.Analyst.UI.Controls {
 		// raised after ToggleMode() flips the tree source, so an external toolbar (WindowWorkspaceTabControl) can refresh its button text
 		public event EventHandler ModeChanged;
 
-		// raised when a Sync click (or Esc) turns Sync off from inside this control, so the toolbar's Sync checkbox (owned by
-		// WindowWorkspaceTabControl) can update to match without that control having to poll or reach into m_timerSync itself
+		// raised when a Sync click (or Esc) turns Sync off from inside this control, so the toolbar's Sync checkbox can update to match
 		public event EventHandler SyncStoppedExternally;
 
 		public TreeNode SelectedNode {
@@ -98,10 +93,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// left-click while Sync is on: resolve once more at the exact click point (not whichever position the last 50ms
-		// tick happened to sample), freeze the tree/overlay there, then turn Sync off — mirrors "Show Info on Mouse"'s
-		// pick-and-stop convention. The hook swallows the click, so the target app never sees it (consistent with that
-		// existing mode; Sync is a developer-toggled inspection mode, not meant to also relay clicks through to the target)
+		// left-click while Sync is on: resolve once more at the exact click point, freeze the tree/overlay there, then turn Sync off; the hook swallows the click
 		private void OnSyncClickPicked(object sender, Point ptscreen) {
 			if (m_timerSync.Enabled == false) {
 				return;
@@ -213,9 +205,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			m_trvHierarchy.SelectedNode = noderoot;
 		}
 
-		// selects the tree node for the given descendant handle (Show Info on Mouse global click), expanding ancestors one hop at a time so lazy
-		// child loading (OnBeforeExpand) populates each level along the way; Win32-mode tree only — the click target is always a raw HWND, which
-		// matches the Win32 tree's TopLevelWindowItem nodes directly, so UIA mode (a different node/Tag shape) is out of scope here and returns false
+		// selects the tree node for the given descendant handle, expanding ancestors one hop at a time so lazy loading (OnBeforeExpand) populates each level; Win32-mode tree only
 		public bool SelectDescendantByHandle(IntPtr handle) {
 			if (m_bUiaMode == true || m_treeService == null || m_rootItem == null || m_trvHierarchy.Nodes.Count == 0) {
 				return false;
@@ -223,10 +213,7 @@ namespace DH.Window.Analyst.UI.Controls {
 
 			TreeNode noderoot = m_trvHierarchy.Nodes[0];
 
-			// GetAncestorChainToRoot returns an empty chain both when handle is unreachable AND when handle IS the root
-			// itself (0 hops) — the disabled-inclusive hit test in OnSyncTick can legitimately resolve straight to the
-			// root (e.g. cursor over the root's own client area with no deeper child there), so that case must be
-			// handled before treating an empty chain as a failure
+			// GetAncestorChainToRoot returns an empty chain both when handle is unreachable AND when handle IS the root itself, so that case is handled separately first
 			if (handle == m_rootItem.Handle) {
 				m_trvHierarchy.SelectedNode = noderoot;
 				noderoot.EnsureVisible();
@@ -244,8 +231,7 @@ namespace DH.Window.Analyst.UI.Controls {
 
 				TreeNode nodenext = FindWin32ChildNode(nodecurrent, handlehop);
 				if (nodenext == null && nodecurrent.Tag is TopLevelWindowItem itemparent) {
-					// cached children reflect whatever existed when this node was first expanded — a window created afterward
-					// (e.g. spotted live via Sync) won't be there yet, so re-enumerate once before giving up on this hop
+					// cached children reflect whatever existed when this node was first expanded, so re-enumerate once before giving up
 					RefreshWin32ChildNodes(nodecurrent, itemparent);
 					nodenext = FindWin32ChildNode(nodecurrent, handlehop);
 				}
@@ -284,9 +270,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			PopulateWin32Children(nodeparent, itemparent.Handle);
 		}
 
-		// adds this handle's real WS_CHILD descendants directly, then — if any exist — a separate "Owned Windows" group
-		// node holding the modal dialogs/tooltips/IME windows it owns, so the tree never implies a parent-child
-		// relationship between a window and something it merely owns
+		// adds real WS_CHILD descendants directly, then a separate "Owned Windows" group node, so the tree never implies parent-child for merely-owned windows
 		private void PopulateWin32Children(TreeNode nodeparent, IntPtr handle) {
 			foreach (TopLevelWindowItem child in m_treeService.GetChildWindowInfos(handle)) {
 				nodeparent.Nodes.Add(CreateWin32Node(child));
@@ -324,8 +308,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// selects the tree node for the given descendant UIA element (Sync hover), expanding ancestors one hop at a time so lazy child
-		// loading (OnBeforeExpand) populates each level along the way; UIA-mode tree only, the counterpart to SelectDescendantByHandle
+		// selects the tree node for the given descendant UIA element (Sync hover), expanding ancestors one hop at a time; UIA-mode counterpart to SelectDescendantByHandle
 		public bool SelectDescendantElement(AutomationElement element) {
 			TreeNode node = FindElementChainNode(element);
 			if (node == null) {
@@ -337,8 +320,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			return true;
 		}
 
-		// ancestor-chain walk (RawView, from element up to root) resolved down to a tree node; null if element isn't
-		// actually a descendant of the root element or the chain can't be matched to cached/refreshed tree nodes
+		// ancestor-chain walk (RawView, from element up to root) resolved down to a tree node; null if not a descendant or chain can't be matched
 		private TreeNode FindElementChainNode(AutomationElement element) {
 			if (m_bUiaMode == false || m_treeService == null || m_rootItem == null || m_trvHierarchy.Nodes.Count == 0 || element == null) {
 				return null;
@@ -364,8 +346,7 @@ namespace DH.Window.Analyst.UI.Controls {
 
 				TreeNode nodenext = FindElementChildNode(nodecurrent, elementhop);
 				if (nodenext == null && nodecurrent.Tag is AutomationElement elementparent) {
-					// same rationale as the Win32 path: an element created after this node's first expand (a new popup/control
-					// that appeared while hovering) won't be in the cached children yet, so re-enumerate once before giving up
+					// same rationale as the Win32 path: re-enumerate once before giving up, in case a new element appeared while hovering
 					RefreshElementChildNodes(nodecurrent, elementparent);
 					nodenext = FindElementChildNode(nodecurrent, elementhop);
 				}
@@ -380,12 +361,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			return nodecurrent;
 		}
 
-		// fallback/complement to FindElementChainNode for when the ancestor-chain walk lands on the wrong branch entirely —
-		// Chrome's GPU compositor exposes a plain "Intermediate D3D Window" surface pane as a sibling of the real content
-		// pane, and that surface pane can share the same screen-space bounding rect as its sibling (both cover the visible
-		// content area), so FromPoint/RawView-ancestor-walk can resolve to the dead-end surface pane instead of the real
-		// content. Descending from the root through every candidate child whose rect contains the point (not just the first
-		// match) and keeping whichever branch reaches the greatest tree depth routes around dead-end siblings like that
+		// fallback for when the ancestor-chain walk lands on the wrong branch (e.g. Chrome's GPU-compositor surface pane sharing a rect with real content): descends through every rect-matching child and keeps the deepest branch
 		private TreeNode FindDeepestPointNode(Point pointscreen) {
 			if (m_bUiaMode == false || m_trvHierarchy.Nodes.Count == 0) {
 				return null;
@@ -430,9 +406,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// heuristic for Chrome's GPU-compositor surface pane and similar dead-end nodes: a disabled element can still be a
-		// "valid" chain match, but real interactive content is never disabled, so this flags exactly the case that needs
-		// the expensive point-based re-search in SyncAt
+		// heuristic for dead-end nodes like Chrome's GPU-compositor pane: real interactive content is never disabled, so this flags the case needing the expensive point-based re-search in SyncAt
 		private static bool IsLikelyDeadEndElement(AutomationElement element) {
 			try {
 				return element.Current.IsEnabled == false;
@@ -455,19 +429,11 @@ namespace DH.Window.Analyst.UI.Controls {
 		}
 
 
-		// scoped to this tab's own window family — its root window plus anything it owns (modal dialogs, tooltips), never a
-		// desktop-wide poll; the target under the cursor not belonging to that family (or being unchanged since the last tick)
-		// does no tree work at all, which is what keeps Sync mode cheap even though it polls at the same 50ms cadence as the
-		// global picker. Deliberately hit-tests first and checks ownership via GetTopLevelAncestorHandle (GA_ROOTOWNER) rather
-		// than pre-filtering by the root window's own screen rect — an owned dialog is frequently positioned outside that rect
-		// (e.g. centered on the whole screen), so a rect-based gate would silently drop it before the ownership check ever ran
+		// scoped to this tab's own window family (root plus anything it owns), never a desktop-wide poll; hit-tests first and checks ownership via GetTopLevelAncestorHandle rather than pre-filtering by the root's screen rect, since an owned dialog is often positioned outside that rect
 		private void OnSyncTick(object sender, EventArgs e) {
 			Point pointcursor = Cursor.Position;
 
-			// SyncAt's live UIA/Win32 hit-testing can take long enough (Chrome's cross-process UIA calls especially) to
-			// delay this thread's WH_MOUSE_LL hook callback (m_hookSyncClick runs on this same UI thread), which Windows
-			// perceives as system-wide mouse lag while the hook is installed — so only pay that cost once the cursor has
-			// actually settled (unchanged since the previous 50ms tick), never while it's still moving between ticks
+			// SyncAt's live hit-testing can take long enough to delay the WH_MOUSE_LL hook callback (perceived as system-wide mouse lag), so only pay that cost once the cursor has settled
 			if (pointcursor != m_pointLastCursorTick) {
 				m_pointLastCursorTick = pointcursor;
 				return;
@@ -484,10 +450,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			if (m_bUiaMode == false) {
 				TopLevelWindowItem itemhover = m_treeService.GetWindowAtScreenPoint(pointscreen);
 				if (itemhover == null || m_treeService.GetTopLevelAncestorHandle(itemhover.Handle) != m_rootItem.Handle) {
-					// WindowFromPoint silently skips disabled windows, so it misses the root's own controls while a modal dialog
-					// (owned by the root) has disabled it — retry with a hit test rooted at the root itself, which doesn't skip
-					// disabled windows, but only when the cursor is actually within the root's bounds (this fallback has no
-					// owner-chain check of its own, since it can only ever resolve to a descendant of roothandle by construction)
+					// WindowFromPoint silently skips disabled windows, so retry with a disabled-inclusive hit test rooted at the root itself, but only within the root's bounds
 					Rectangle rectroot = m_treeService.GetWindowScreenRect(m_rootItem.Handle);
 					itemhover = rectroot.Contains(pointscreen) == true
 						? m_treeService.GetDescendantAtScreenPointIncludingDisabled(m_rootItem.Handle, pointscreen)
@@ -515,22 +478,13 @@ namespace DH.Window.Analyst.UI.Controls {
 			else {
 				AutomationElement elementhover = m_treeService.GetElementAtScreenPoint(pointscreen);
 
-				// the overlay itself is a TopMost window that can sit directly under the cursor (it's still showing the
-				// previous tick's target rect while this tick resolves the next one) — WS_EX_TRANSPARENT makes Win32's
-				// WindowFromPoint skip it, but UI Automation's own point hit test does not reliably do the same, so FromPoint
-				// can resolve to our own overlay's element instead of whatever is really under the cursor. Rather than hiding
-				// the overlay each tick (visibly flickers), just discard a hit that belongs to our own process and fall
-				// through to the disabled-inclusive Win32 fallback below, which walks descendants of m_rootItem only and so
-				// can never resolve to the overlay (a separate top-level window, not a descendant of the inspected root)
+				// the TopMost overlay window can sit under the cursor; UIA's point hit test (unlike Win32's) doesn't reliably skip WS_EX_TRANSPARENT, so discard a hit belonging to our own process rather than hide the overlay each tick (flickers)
 				if (elementhover != null && IsOwnProcessElement(elementhover) == true) {
 					elementhover = null;
 				}
 
 				if (elementhover == null) {
-					// same disabled-window blind spot as the Win32 branch (UIA's point hit test is backed by WindowFromPoint for
-					// HWND-based elements too) — fall back to the disabled-inclusive Win32 hit test, then wrap whatever HWND it
-					// finds as a UIA element; this only reaches the nearest HWND-bearing container, not a deeper UIA-only leaf,
-					// but that's still a correct (if coarser) sync target instead of nothing
+					// same disabled-window blind spot as the Win32 branch; fall back to the disabled-inclusive Win32 hit test and wrap the resulting HWND as a UIA element (coarser, but a correct sync target)
 					Rectangle rectroot = m_treeService.GetWindowScreenRect(m_rootItem.Handle);
 					TopLevelWindowItem itemfallback = rectroot.Contains(pointscreen) == true
 						? m_treeService.GetDescendantAtScreenPointIncludingDisabled(m_rootItem.Handle, pointscreen)
@@ -551,11 +505,7 @@ namespace DH.Window.Analyst.UI.Controls {
 
 				TreeNode nodechain = FindElementChainNode(elementhover);
 
-				// FindDeepestPointNode routes around a dead-end sibling branch (e.g. Chrome's GPU-compositor "Intermediate
-				// D3D Window" pane) by force-loading every rect-matching sibling via live UIA calls — necessary for that one
-				// case, but too expensive to pay on every tick just because the mouse moved (Chrome's UIA child enumeration
-				// alone can take tens of ms). The dead-end pane is always disabled/non-interactive, so only re-run the
-				// expensive point-based search when the chain result is missing or looks like exactly that case
+				// FindDeepestPointNode is too expensive to run every tick (Chrome's UIA child enumeration can take tens of ms), so only re-run it when the chain result is missing or looks like a dead-end pane
 				TreeNode nodetarget = nodechain;
 				if (nodechain == null || (nodechain.Tag is AutomationElement elementchain && IsLikelyDeadEndElement(elementchain) == true)) {
 					TreeNode nodepoint = FindDeepestPointNode(pointscreen);
@@ -599,13 +549,10 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// owned windows (modal dialogs, tooltips, IME windows — see IsOwnedWindow) are grouped under a synthetic "Owned
-		// Windows" node (see PopulateWin32Children / s_tagOwnedWindowsGroup) rather than mixed in with real children;
-		// they still get this color so they read as distinct even inside that group
+		// owned windows are grouped under a synthetic "Owned Windows" node (see PopulateWin32Children) but still get this color to read as distinct even inside that group
 		private static readonly Color s_colorOwnedWindow = Color.FromArgb(150, 90, 0);
 
-		// marks the synthetic "Owned Windows" grouping node, which has no real HWND of its own — distinguishes it from
-		// real TreeNode.Tag values (TopLevelWindowItem) when walking the tree
+		// marks the synthetic "Owned Windows" grouping node, distinguishing it from real TreeNode.Tag values (TopLevelWindowItem) when walking the tree
 		private static readonly object s_tagOwnedWindowsGroup = new object();
 
 		private TreeNode CreateWin32Node(TopLevelWindowItem item) {

@@ -10,8 +10,7 @@ using System;
 using System.Collections.Generic;
 
 namespace DH.Window.Analyst.Models {
-	// point-in-time capture of a window's Basic + Native Details property rows (Property Compare feature); session-only,
-	// never persisted — held in a plain in-memory list by whoever captures it (MainForm), same lifetime as Event/Message logs
+	// session-only capture (Property Compare feature); never persisted, held in-memory by MainForm same lifetime as Event/Message logs
 	public class PropertySnapshot {
 		public IntPtr Handle { get; }
 

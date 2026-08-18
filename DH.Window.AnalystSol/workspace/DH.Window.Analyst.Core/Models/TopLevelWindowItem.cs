@@ -24,9 +24,7 @@ namespace DH.Window.Analyst.Models {
 
 		public ImageSource Icon { get; }
 
-		// true when this window is a separate top-level HWND connected via GWL_HWNDPARENT owner (e.g. a modal dialog, tooltip,
-		// IME window) rather than a true WS_CHILD descendant — the hierarchy tree still nests it under its owner for browsing/
-		// sync purposes, but callers that care about the distinction (tree node styling) can check this flag
+		// true when connected via GWL_HWNDPARENT owner (e.g. modal dialog/tooltip/IME) rather than true WS_CHILD; tree still nests it under its owner
 		public bool IsOwnedWindow { get; }
 
 		public string HandleText { get { return "0x" + Handle.ToString("X"); } }

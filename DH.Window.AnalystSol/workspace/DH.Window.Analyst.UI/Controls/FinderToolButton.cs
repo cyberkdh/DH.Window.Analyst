@@ -49,8 +49,7 @@ namespace DH.Window.Analyst.UI.Controls {
 				return;
 			}
 
-			// re-asserted on every move: Windows resets the cursor to whatever the window under the pointer owns
-			// (WM_SETCURSOR), so a one-time set in OnMouseDown would not survive moving over another window
+			// re-asserted on every move: Windows resets the cursor to whatever the window under the pointer owns (WM_SETCURSOR), so a one-time set in OnMouseDown would not survive moving over another window
 			Cursor.Current = Cursors.Cross;
 
 			Point ptscreen = PointToScreen(e.Location);

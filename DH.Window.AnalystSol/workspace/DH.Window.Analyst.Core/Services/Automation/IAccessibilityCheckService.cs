@@ -12,7 +12,6 @@ using DH.Window.Analyst.Models;
 
 namespace DH.Window.Analyst.Services.Automation {
 	public interface IAccessibilityCheckService {
-		// walks the full subtree rooted at root and returns every rule violation found
 		List<AccessibilityIssueItem> CheckSubtree(AutomationElement root);
 	}
 }

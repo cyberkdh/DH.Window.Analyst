@@ -185,9 +185,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// AutomationId is preferred (survives localization/UI text changes); Name+ControlType is the fallback most
-		// automation authors reach for next; ClassName+ControlType is the weakest signal (ambiguous with repeated controls).
-		// Returns the reliability label ("Good"/"Fair"/"Poor") shown next to the value in the Basic tab row
+		// AutomationId is preferred (survives localization); Name+ControlType is the fallback; ClassName+ControlType is weakest (ambiguous with repeated controls)
 		private string BuildSuggestedSelector(AutomationElement.AutomationElementInformation info) {
 			string strcontroltypetoken = GetControlTypeToken(info.ControlType);
 

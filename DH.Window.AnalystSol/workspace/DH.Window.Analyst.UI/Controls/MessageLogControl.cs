@@ -142,8 +142,7 @@ namespace DH.Window.Analyst.UI.Controls {
 				new object[] { true });
 		}
 
-		// narrows the filter list to WM_SIZE/WM_MOVE/WM_WINDOWPOSCHANGED/WM_DPICHANGED so a layout/DPI bug can be
-		// chased without wading through unrelated message traffic (mouse/keyboard/paint, etc.)
+		// narrows the filter to layout/DPI messages so a layout bug can be chased without wading through unrelated traffic
 		private void ApplyLayoutFilterPreset() {
 			var setlayoutnames = new HashSet<string>();
 			foreach (uint nmessageid in MessageHookMonitorService.LayoutMessageIds) {
@@ -161,8 +160,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
-		// restores the initial checklist state: everything checked except high-frequency messages (WM_MOUSEMOVE, etc.)
-		// that would otherwise flood the log; relies on m_clbFilter having been populated from SupportedMessageIds in order
+		// restores default state: everything checked except high-frequency messages; relies on m_clbFilter order matching SupportedMessageIds
 		private void ApplyDefaultFilterPreset() {
 			int i = 0;
 			foreach (uint nmessageid in MessageHookMonitorService.SupportedMessageIds) {

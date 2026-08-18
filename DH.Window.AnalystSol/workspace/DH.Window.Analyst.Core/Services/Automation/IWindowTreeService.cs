@@ -16,20 +16,16 @@ namespace DH.Window.Analyst.Services.Automation {
 		// Win32-based, no UIA, returns immediately
 		IEnumerable<TopLevelWindowItem> GetTopLevelWindowInfos();
 
-		// resolves the top-level window under the given screen point (Finder Tool); null if none found
 		TopLevelWindowItem GetTopLevelWindowAtScreenPoint(System.Drawing.Point point);
 
 		// raw WindowFromPoint result under the given screen point, NOT resolved up to its top-level ancestor (Show Info on Mouse); null if none found
 		TopLevelWindowItem GetWindowAtScreenPoint(System.Drawing.Point point);
 
-		// walks the parent chain from handle up to (but not including) roothandle, returning it top-down (root's direct child first, handle last);
-		// empty if handle is not actually a descendant of roothandle
+		// returned top-down (root's direct child first, handle last); empty if handle is not actually a descendant of roothandle
 		IReadOnlyList<IntPtr> GetAncestorChainToRoot(IntPtr handle, IntPtr roothandle);
 
-		// screen-space bounds of the given window, for drag-feedback highlighting
 		System.Drawing.Rectangle GetWindowScreenRect(IntPtr handle);
 
-		// restores (if minimized) and brings the given top-level window to the foreground
 		void ActivateWindow(IntPtr handle);
 
 		// resolves the top-level ancestor HWND of any window (top-level or descendant); returns the handle itself if already top-level
@@ -41,25 +37,20 @@ namespace DH.Window.Analyst.Services.Automation {
 		// Win32-level criteria only (Caption/ClassName/Handle/ProcessId/ProcessName/ControlId) — fast, synchronous, no UIA involved
 		IEnumerable<TopLevelWindowItem> FindWindows(WindowSearchCriteria criteria);
 
-		// builds a TopLevelWindowItem for any single handle (top-level or descendant); null if the handle is no longer valid
 		TopLevelWindowItem GetWindowItem(IntPtr handle);
 
 		// the real Win32 parent of every top-level window (GetDesktopWindow) — has its own handle/class/rect like any other window
 		TopLevelWindowItem GetDesktopWindowInfo();
 
-		// immediate WS_CHILD windows only (Win32 native hierarchy), for the Native Window tree
 		IEnumerable<TopLevelWindowItem> GetChildWindowInfos(IntPtr parenthandle);
 
-		// separate top-level windows owned by parenthandle (modal dialogs, tooltips, IME windows) — not true WS_CHILD
-		// descendants, kept distinct so the tree can group them separately instead of nesting them among real children
+		// owned windows (modal dialogs, tooltips, IME windows) are not true WS_CHILD descendants, kept distinct so the tree can group them separately
 		IEnumerable<TopLevelWindowItem> GetOwnedWindowInfos(IntPtr parenthandle);
 
-		// converts a single selected window only; null on failure
 		AutomationElement CreateElementFromHandle(IntPtr handle);
 
 		IEnumerable<AutomationElement> GetChildren(AutomationElement parent);
 
-		// low-level Win32 details (rect/proc/instance/menu/...) for the single selected window only
 		IEnumerable<PropertyItem> GetNativeWindowDetails(IntPtr handle);
 
 		// cheap existence check (IsWindow) — used to poll whether an inspected window has been closed
@@ -71,15 +62,12 @@ namespace DH.Window.Analyst.Services.Automation {
 		// rect/style/exstyle/thread-id only — cheap enough to call every hover-poll tick, unlike GetNativeWindowDetails
 		WindowQuickInfo GetWindowQuickInfo(IntPtr handle);
 
-		// UI Automation element under the given screen point (Inspector "Sync" hover); null if none found or the cross-process call throws
 		AutomationElement GetElementAtScreenPoint(System.Drawing.Point point);
 
-		// walks the UIA parent chain (RawView, matching GetChildren's TrueCondition scope) from element up to (but not including) rootelement,
-		// returned top-down (root's direct child first, element last); empty if element is not actually a descendant of rootelement
+		// walks the UIA parent chain (RawView, matching GetChildren's TrueCondition scope), returned top-down (root's direct child first, element last)
 		IReadOnlyList<AutomationElement> GetElementAncestorChainToRoot(AutomationElement element, AutomationElement rootelement);
 
-		// deepest descendant of roothandle at the given screen point, walking child windows even if disabled — unlike GetWindowAtScreenPoint
-		// (WindowFromPoint), this does not skip disabled windows, so it still finds the target while it's showing its own modal dialog
+		// unlike GetWindowAtScreenPoint (WindowFromPoint), this does not skip disabled windows, so it still finds the target while it's showing its own modal dialog
 		TopLevelWindowItem GetDescendantAtScreenPointIncludingDisabled(IntPtr roothandle, System.Drawing.Point point);
 	}
 }

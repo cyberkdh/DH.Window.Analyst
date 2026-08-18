@@ -16,8 +16,7 @@ using DH.Window.Analyst.Models;
 using DH.Window.Analyst.Services.Automation;
 
 namespace DH.Window.Analyst.UI.Dialogs {
-	// classic Spy++-style Find Window dialog: Caption/ClassName/Handle always visible; an "Advanced" section adds
-	// PID/ProcessName/ControlId (cheap Win32-level filters) and AutomationId/UIA Name/ControlType (expensive UIA subtree walk)
+	// classic Spy++-style Find Window dialog; Advanced section adds cheap Win32 filters plus an expensive UIA subtree walk
 	public partial class FindWindowForm : Form {
 		private readonly IWindowTreeService m_treeService;
 		// stateless, so instantiated locally rather than threaded through the constructor like the shared IWindowTreeService
@@ -51,7 +50,6 @@ namespace DH.Window.Analyst.UI.Dialogs {
 			RelayoutDialog();
 		}
 
-		// repositions everything below the Advanced toggle based on current state (Advanced expanded/collapsed, results shown/not, search in progress/not) —
 		// simpler and less error-prone than maintaining several fixed Designer layouts for every state combination
 		private void RelayoutDialog() {
 			int ny = m_linkAdvanced.Bottom + 8;
@@ -146,7 +144,6 @@ namespace DH.Window.Analyst.UI.Dialogs {
 			if (criteria.HasUiaCriteria == true) {
 				listmatches = await RunUiaSearchAsync(criteria);
 				if (listmatches == null) {
-					// cancelled — leave the dialog open as-is
 					return;
 				}
 			}
@@ -212,9 +209,7 @@ namespace DH.Window.Analyst.UI.Dialogs {
 			ShowResultList(listmatches);
 		}
 
-		// groups matches by top-level ancestor (a process/search can legitimately have several top-level windows), with any matched
-		// descendant window nested underneath its owning top-level window for context — but only the top-level node is selectable,
-		// so e.g. a PID search that technically matches dozens of child controls never lets the user pick a non-top-level result
+		// groups matches by top-level ancestor; only top-level nodes are selectable, so child-control matches nest under their owner for context only
 		private void ShowResultList(List<TopLevelWindowItem> listmatches) {
 			m_treeResults.Nodes.Clear();
 

@@ -14,10 +14,7 @@ using DH.Window.Analyst.Logging;
 using DH.Window.Analyst.UI.Utils;
 
 namespace DH.Window.Analyst.UI.Controls {
-	// self-subscribes to the static AppLog.EntryLogged event for the lifetime of this control; Dispose() unsubscribes.
-	// Debug-level entries are received but hidden by default (m_chkShowDebug unchecked) to keep the panel readable during normal use.
-	// ListViewItem has no supported per-row show/hide, so all received entries are kept in m_entries (capped) and the
-	// ListView is rebuilt from it whenever the Debug filter toggles; new entries are appended directly when they pass the filter.
+	// ListViewItem has no supported per-row show/hide, so all received entries are kept in m_entries (capped) and the ListView is rebuilt from it whenever the Debug filter toggles
 	public partial class AppLogViewerControl : UserControl {
 		private const int MAX_LOG_ROWS = 1000;
 

@@ -27,8 +27,7 @@ namespace DH.Window.Analyst.UI.Controls {
 		// tracks which tab the tooltip text currently reflects, so repeated MouseMove events over the same tab don't re-issue SetToolTip (which restarts the tooltip's show delay and causes flicker)
 		private int m_nLastTooltipTabIndex = -1;
 
-		// bubbled from a workspace tab's property view — a Parent/Owner/First Child/Next/Previous row was double-clicked;
-		// the host (MainForm) resolves this into both a Windows-list selection and a workspace tab
+		// bubbled from a workspace tab's property view; the host (MainForm) resolves this into both a Windows-list selection and a workspace tab
 		public event EventHandler<IntPtr> WindowReferenceActivated;
 
 		public WorkspaceControl() {
@@ -67,8 +66,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			DetachTab(m_tabWorkspace.SelectedTab);
 		}
 
-		// full tab titles, unlike the fixed-width ellipsized tab strip — lets the user jump to a tab without reading truncated text or scrolling the strip.
-		// screenlocation lets the caller (a menu item or toolbar button, neither of which is itself a Control) position the popup under whatever was clicked.
+		// full tab titles, unlike the fixed-width ellipsized tab strip; screenlocation lets a non-Control caller (menu item, toolbar button) position the popup
 		public void ShowTabListPopup(Point screenlocation) {
 			if (m_tabWorkspace.TabCount == 0) {
 				return;

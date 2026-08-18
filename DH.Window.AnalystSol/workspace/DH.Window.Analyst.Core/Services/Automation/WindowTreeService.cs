@@ -120,10 +120,7 @@ namespace DH.Window.Analyst.Services.Automation {
 			return NativeMethods.GetForegroundWindow();
 		}
 
-		// true WS_CHILD descendants (GW_CHILD + GW_HWNDNEXT siblings) plus top-level windows owned by this one (GWL_HWNDPARENT,
-		// e.g. modal dialogs, tooltips, IME windows) — the latter are never reachable via GW_CHILD since they're separate
-		// top-level HWNDs, but nesting them here lets the tree (and Sync) follow a window into its own dialogs; IsOwnedWindow
-		// on the resulting item marks which ones these are so the UI can render them distinctly
+		// includes GWL_HWNDPARENT-owned top-level windows (modal dialogs, tooltips, IME) alongside true GW_CHILD descendants, since owned windows aren't reachable via GW_CHILD but the tree needs to follow into them; IsOwnedWindow marks which ones these are
 		public IEnumerable<TopLevelWindowItem> GetChildWindowInfos(IntPtr parenthandle) {
 			List<TopLevelWindowItem> listitems = new List<TopLevelWindowItem>();
 
@@ -136,10 +133,7 @@ namespace DH.Window.Analyst.Services.Automation {
 			return listitems;
 		}
 
-		// separate top-level windows connected via GWL_HWNDPARENT owner (modal dialogs, tooltips, IME windows) rather than
-		// true WS_CHILD descendants of parenthandle — kept distinct from GetChildWindowInfos so the tree UI can group them
-		// separately instead of nesting them among real children, which would imply a parent-child relationship that
-		// doesn't actually exist
+		// kept distinct from GetChildWindowInfos so the UI can group owned windows separately instead of implying a parent-child relationship that doesn't actually exist
 		public IEnumerable<TopLevelWindowItem> GetOwnedWindowInfos(IntPtr parenthandle) {
 			List<TopLevelWindowItem> listitems = new List<TopLevelWindowItem>();
 
@@ -188,12 +182,7 @@ namespace DH.Window.Analyst.Services.Automation {
 			return BuildWindowItem(hwnd);
 		}
 
-		// deepest descendant of roothandle at the given screen point, including disabled windows — WindowFromPoint silently skips
-		// disabled windows, which hides a window's own controls from hit-testing while it's showing its own modal dialog (the owner
-		// is disabled for the duration); ChildWindowFromPointEx has no such skip, so this walks down one level at a time instead
-		// walks GW_CHILD/GW_HWNDNEXT by hand (same enumeration GetChildWindowInfos uses for the tree itself) instead of
-		// ChildWindowFromPointEx, checking each visible child's rect for containment and taking the first match — GW_CHILD
-		// enumerates in top-to-bottom z-order, so the first containing child is also the topmost one at that point
+		// WindowFromPoint/ChildWindowFromPointEx silently skip disabled windows (hides a window's own controls while it's showing its own modal dialog), so this walks GW_CHILD/GW_HWNDNEXT by hand instead, taking the first containing child since that enumeration is top-to-bottom z-order
 		public TopLevelWindowItem GetDescendantAtScreenPointIncludingDisabled(IntPtr roothandle, System.Drawing.Point point) {
 			IntPtr hwndcurrent = roothandle;
 
@@ -256,17 +245,12 @@ namespace DH.Window.Analyst.Services.Automation {
 			return new WindowQuickInfo(new Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top), nstyle, nexstyle, (int) nthreadid);
 		}
 
-		// restores (if minimized) and brings the given top-level window to the foreground
 		public void ActivateWindow(IntPtr handle) {
 			if (NativeMethods.IsIconic(handle) == true) {
 				NativeMethods.ShowWindow(handle, NativeMethods.SW_RESTORE);
 			}
 
-			// SetForegroundWindow alone is subject to Windows' foreground-lock restriction and can silently
-			// no-op or activate a different window instead of ours; the topmost/no-topmost z-order flip is
-			// unaffected by that restriction and reliably brings the target window visually to the front,
-			// so it always runs first — SetForegroundWindow's return value is only used here to log whether
-			// the OS still refused focus afterward (the window is visually on top either way)
+			// SetForegroundWindow alone is subject to Windows' foreground-lock restriction and can silently no-op, so the topmost/no-topmost z-order flip (unaffected by that restriction) always runs first; SetForegroundWindow's result is only used to log whether focus was still refused
 			WindowControlNativeMethods.SetWindowPos(handle, WindowControlNativeMethods.HWND_TOPMOST, 0, 0, 0, 0, WindowControlNativeMethods.SWP_NOMOVE | WindowControlNativeMethods.SWP_NOSIZE);
 			WindowControlNativeMethods.SetWindowPos(handle, WindowControlNativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, WindowControlNativeMethods.SWP_NOMOVE | WindowControlNativeMethods.SWP_NOSIZE);
 
@@ -275,9 +259,7 @@ namespace DH.Window.Analyst.Services.Automation {
 			}
 		}
 
-		// resolves the top-level ancestor HWND of any window (top-level or descendant); follows both the parent AND owner chain
-		// (GA_ROOTOWNER, not just GA_ROOT) so owned popups with no real parent — tooltips, MSCTFIME UI/Default IME windows — resolve
-		// up to the actual application window that owns them, instead of being treated as unrelated top-level windows of their own
+		// GA_ROOTOWNER (not just GA_ROOT) so owned popups with no real parent (tooltips, IME windows) resolve up to the app window that owns them instead of being treated as unrelated top-level windows
 		public IntPtr GetTopLevelAncestorHandle(IntPtr handle) {
 			IntPtr hroot = NativeMethods.GetAncestor(handle, NativeMethods.GA_ROOTOWNER);
 			return hroot != IntPtr.Zero ? hroot : handle;
@@ -288,8 +270,7 @@ namespace DH.Window.Analyst.Services.Automation {
 			return FindWindows(new WindowSearchCriteria { Caption = strcaption, ClassName = strclassname, Handle = handlefilter });
 		}
 
-		// Win32-level criteria only (Caption/ClassName/Handle/ProcessId/ProcessName/ControlId) — fast, synchronous, no UIA involved;
-		// AutomationId/UiaName/ControlType on the criteria are ignored here, callers needing those must layer IUiaSearchService on top of this result
+		// Win32-level criteria only; AutomationId/UiaName/ControlType are ignored here, callers needing those must layer IUiaSearchService on top of this result
 		public IEnumerable<TopLevelWindowItem> FindWindows(WindowSearchCriteria criteria) {
 			List<TopLevelWindowItem> listmatches = new List<TopLevelWindowItem>();
 
@@ -628,8 +609,7 @@ namespace DH.Window.Analyst.Services.Automation {
 			}
 		}
 
-		// top-down parent chain from rootelement's direct child down to element (RawView, matching GetChildren's TrueCondition scope); empty if
-		// element never reaches rootelement (256-hop safety cap, mirroring GetAncestorChainToRoot's HWND version)
+		// mirrors GetAncestorChainToRoot's HWND version; empty if element never reaches rootelement (256-hop safety cap)
 		public IReadOnlyList<AutomationElement> GetElementAncestorChainToRoot(AutomationElement element, AutomationElement rootelement) {
 			List<AutomationElement> listchain = new List<AutomationElement>();
 			if (element == null || rootelement == null) {

@@ -15,9 +15,7 @@ using DH.Window.Analyst.Models;
 using DH.Window.Analyst.UI.Utils;
 
 namespace DH.Window.Analyst.UI.Dialogs {
-	// modeless A/B diff viewer over MainForm's session-scoped snapshot list (live reference, not a copy) — "Refresh List"
-	// picks up snapshots captured after this dialog was opened; explicit-trigger convention: no auto-refresh, diff rebuilds
-	// only on combo/checkbox change
+	// modeless A/B diff viewer over MainForm's live snapshot list; explicit-trigger convention: no auto-refresh, diff rebuilds only on combo/checkbox change
 	public partial class SnapshotCompareForm : Form {
 		private static readonly string[] EXPORT_HEADERS = { "Property", "ValueA", "ValueB", "Changed" };
 		private static readonly Color DIFF_HIGHLIGHT_COLOR = Color.FromArgb(0xFF, 0xCD, 0xD2);

@@ -22,9 +22,7 @@ struct HookNativeMessageEntry {
 	DWORD ndwthreadid;
 	BOOL bposted; // FALSE = WH_CALLWNDPROC (sent), TRUE = WH_GETMESSAGE (posted/queued)
 
-	// WM_WINDOWPOSCHANGED/WM_DPICHANGED carry a pointer valid only in the target process's address space,
-	// so this DLL (already running inside that process) dereferences it here and ships the decoded values
-	// instead — the managed side receiving this batch has no way to read another process's memory
+	// WM_WINDOWPOSCHANGED/WM_DPICHANGED carry a pointer valid only in the target process's address space, so this DLL dereferences it here and ships the decoded values since the managed side can't read another process's memory
 	BOOL bhasdecodedrect;
 	LONG nrectleft;
 	LONG nrecttop;

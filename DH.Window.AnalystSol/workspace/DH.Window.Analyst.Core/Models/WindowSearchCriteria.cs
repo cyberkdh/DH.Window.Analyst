@@ -9,9 +9,7 @@
 using System;
 
 namespace DH.Window.Analyst.Models {
-	// Caption/ClassName/Handle/ProcessId/ProcessName/ControlId are cheap Win32-level filters (fast EnumWindows walk);
-	// AutomationId/UiaName/ControlType require a cross-process UIA subtree walk and are far more expensive, so callers
-	// must branch on HasUiaCriteria to route the search through the background/cancellable path instead of the synchronous one
+	// AutomationId/UiaName/ControlType require a cross-process UIA subtree walk, so callers must branch on HasUiaCriteria to route the search through the background/cancellable path instead of the synchronous one
 	public class WindowSearchCriteria {
 		public string Caption { get; set; }
 		public string ClassName { get; set; }
