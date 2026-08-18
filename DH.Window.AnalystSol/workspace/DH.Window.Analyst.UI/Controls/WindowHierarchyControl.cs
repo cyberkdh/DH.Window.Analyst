@@ -33,6 +33,10 @@ namespace DH.Window.Analyst.UI.Controls {
 		private IntPtr m_handleLastSyncTarget;
 		private AutomationElement m_elementLastSyncTarget;
 
+		// last raw cursor position seen by OnSyncTick, used to detect "mouse still moving" and skip the expensive
+		// resolution entirely while it is — see OnSyncTick
+		private Point m_pointLastCursorTick;
+
 		// while Sync is on, a left-click anywhere freezes the tree on whatever is currently synced and turns Sync back off —
 		// same swallow-the-click "pick and stop" convention as MousePickerCoordinator's "Show Info on Mouse" mode, using a
 		// separate hook instance scoped to this tab's own Sync session rather than the app-wide picker's shared one
@@ -80,6 +84,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			if (benabled == true) {
 				m_handleLastSyncTarget = IntPtr.Zero;
 				m_elementLastSyncTarget = null;
+				m_pointLastCursorTick = Cursor.Position;
 				m_timerSync.Start();
 
 				if (m_hookSyncClick.Start() == false) {
@@ -425,6 +430,18 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 		}
 
+		// heuristic for Chrome's GPU-compositor surface pane and similar dead-end nodes: a disabled element can still be a
+		// "valid" chain match, but real interactive content is never disabled, so this flags exactly the case that needs
+		// the expensive point-based re-search in SyncAt
+		private static bool IsLikelyDeadEndElement(AutomationElement element) {
+			try {
+				return element.Current.IsEnabled == false;
+			}
+			catch (ElementNotAvailableException) {
+				return false;
+			}
+		}
+
 		private static readonly int s_nOwnProcessId = Process.GetCurrentProcess().Id;
 
 		// true if element belongs to this app's own process (e.g. the Sync overlay window) rather than the inspected target
@@ -445,7 +462,18 @@ namespace DH.Window.Analyst.UI.Controls {
 		// than pre-filtering by the root window's own screen rect — an owned dialog is frequently positioned outside that rect
 		// (e.g. centered on the whole screen), so a rect-based gate would silently drop it before the ownership check ever ran
 		private void OnSyncTick(object sender, EventArgs e) {
-			SyncAt(Cursor.Position);
+			Point pointcursor = Cursor.Position;
+
+			// SyncAt's live UIA/Win32 hit-testing can take long enough (Chrome's cross-process UIA calls especially) to
+			// delay this thread's WH_MOUSE_LL hook callback (m_hookSyncClick runs on this same UI thread), which Windows
+			// perceives as system-wide mouse lag while the hook is installed — so only pay that cost once the cursor has
+			// actually settled (unchanged since the previous 50ms tick), never while it's still moving between ticks
+			if (pointcursor != m_pointLastCursorTick) {
+				m_pointLastCursorTick = pointcursor;
+				return;
+			}
+
+			SyncAt(pointcursor);
 		}
 
 		private void SyncAt(Point pointscreen) {
@@ -521,14 +549,20 @@ namespace DH.Window.Analyst.UI.Controls {
 
 				m_elementLastSyncTarget = elementhover;
 
-				// run both resolution strategies and keep whichever reaches deeper into the tree, rather than trusting whichever
-				// happens to succeed first — the ancestor-chain walk can "successfully" resolve to a real tree node that is
-				// nonetheless the wrong (shallower/dead-end) sibling branch, e.g. Chrome's GPU-compositor surface pane
 				TreeNode nodechain = FindElementChainNode(elementhover);
-				TreeNode nodepoint = FindDeepestPointNode(pointscreen);
-				TreeNode nodetarget = nodechain == null ? nodepoint
-					: nodepoint == null ? nodechain
-					: nodepoint.Level > nodechain.Level ? nodepoint : nodechain;
+
+				// FindDeepestPointNode routes around a dead-end sibling branch (e.g. Chrome's GPU-compositor "Intermediate
+				// D3D Window" pane) by force-loading every rect-matching sibling via live UIA calls — necessary for that one
+				// case, but too expensive to pay on every tick just because the mouse moved (Chrome's UIA child enumeration
+				// alone can take tens of ms). The dead-end pane is always disabled/non-interactive, so only re-run the
+				// expensive point-based search when the chain result is missing or looks like exactly that case
+				TreeNode nodetarget = nodechain;
+				if (nodechain == null || (nodechain.Tag is AutomationElement elementchain && IsLikelyDeadEndElement(elementchain) == true)) {
+					TreeNode nodepoint = FindDeepestPointNode(pointscreen);
+					if (nodepoint != null && (nodetarget == null || nodepoint.Level > nodetarget.Level)) {
+						nodetarget = nodepoint;
+					}
+				}
 
 				if (nodetarget != null) {
 					m_trvHierarchy.SelectedNode = nodetarget;
