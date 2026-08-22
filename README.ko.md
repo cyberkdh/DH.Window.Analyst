@@ -19,6 +19,7 @@ DH.Window.Analyst는 Win32와 UIA를 함께 다루면서, 단순 조회에 그�
 **창 탐색**
 - 최상위 윈도우 목록 조회(Win32 `EnumWindows` 기반), 프로세스별 그룹핑/검색/Instant Find
 - Win32 트리 ↔ UI Automation(UIA) 트리 토글, 지연 로딩(lazy loading)
+- UIA 트리 Control View 토글(기본값 RawView, ControlView는 Legacy IAccessible 브릿지 중복 피어를 걸러내 Sync/트리 탐색 시 노이즈 감소)
 - 커서로 대상을 직접 지정하는 Finder Tool(Spy++ 스타일 드래그 픽업)
 - 캡션/클래스명/핸들 기본 검색 + PID/ProcessName/ControlId/AutomationId/UIA Name/ControlType 확장 검색(Find Window)
 - "Show Info on Mouse" 전역 마우스 Picker — 다른 프로세스 창 위에서도 호버 정보/하이라이트 실시간 표시, 클릭으로 즉시 선택
@@ -29,6 +30,7 @@ DH.Window.Analyst는 Win32와 UIA를 함께 다루면서, 단순 조회에 그�
 - 기본 정보, Win32 저수준 속성(Window/Client/Restore Rect, Style/ExStyle, Window Proc, Class 정보 등 Spy++ 스타일 전 항목), 자식 윈도우 요약
 - 창 관계 정보(Parent/Owner/First Child/Next/Previous, Z-Order)
 - UIA 속성 및 Child Elements 조회, 신뢰도 순 폴백(AutomationId → Name+ControlType → ClassName+ControlType)으로 추천하는 "Suggested Selector" — 자동화 스크립트용으로 key=value/XPath 두 포맷 복사 지원
+- Selector2(AutomationId/Name/ClassName/ControlType을 전부 AND 조합 — 속성 하나만으로 애매한 경우 대비), KeyPath(형제 인덱스 경로, 예: `0/2/1`), TypePath(ControlType 경로, 예: `.\pane\pane\...\combo box`) 추가 폴백 제공
 - 선택 요소 하이라이트 오버레이, 전면 전환(Foreground)
 
 ![Suggested Selector](docs/images/uia-suggested-selector.png)

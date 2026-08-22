@@ -74,6 +74,11 @@ namespace DH.Window.Analyst.UI.Controls {
 			ModeChanged?.Invoke(this, EventArgs.Empty);
 		}
 
+		// rebuilds the currently shown tree from scratch, triggered explicitly (Control View toggle in WindowWorkspaceTabControl) so a walker-mode change is reflected immediately
+		public void ReloadTree() {
+			LoadRoot(m_rootItem);
+		}
+
 		// starts/stops hover-follow sync, triggered explicitly (Sync toggle button in WindowWorkspaceTabControl)
 		public void SetSyncEnabled(bool benabled) {
 			if (benabled == true) {
@@ -361,44 +366,49 @@ namespace DH.Window.Analyst.UI.Controls {
 			return nodecurrent;
 		}
 
-		// fallback for when the ancestor-chain walk lands on the wrong branch (e.g. Chrome's GPU-compositor surface pane sharing a rect with real content): descends through every rect-matching child and keeps the deepest branch
+		// fallback for when the ancestor-chain walk lands on the wrong branch (e.g. Chrome's GPU-compositor surface pane sharing a rect with real content): scans the whole subtree and keeps the smallest-area match
 		private TreeNode FindDeepestPointNode(Point pointscreen) {
 			if (m_bUiaMode == false || m_trvHierarchy.Nodes.Count == 0) {
 				return null;
 			}
 
 			TreeNode noderoot = m_trvHierarchy.Nodes[0];
-			return FindDeepestPointNode(noderoot, pointscreen) ?? noderoot;
+			TreeNode nodebest = null;
+			double dblbestarea = double.MaxValue;
+			FindDeepestPointNode(noderoot, pointscreen, ref nodebest, ref dblbestarea);
+			return nodebest ?? noderoot;
 		}
 
-		private TreeNode FindDeepestPointNode(TreeNode nodeparent, Point pointscreen) {
+		// recurses into every child regardless of whether its own rect contains the point - a stale/clipped intermediate ancestor rect must not gate the recursion, or a genuinely-matching descendant further down gets missed entirely; among all matches found, keeps the smallest bounding-rectangle area (the most specific hit)
+		private void FindDeepestPointNode(TreeNode nodeparent, Point pointscreen, ref TreeNode nodebest, ref double dblbestarea) {
 			EnsureElementChildrenLoaded(nodeparent);
-
-			TreeNode nodebest = null;
 
 			foreach (TreeNode nodechild in nodeparent.Nodes) {
 				if (!(nodechild.Tag is AutomationElement elementchild)) {
 					continue;
 				}
 
+				System.Windows.Rect rect;
 				try {
-					if (elementchild.Current.BoundingRectangle.Contains(pointscreen.X, pointscreen.Y) == false) {
-						continue;
-					}
+					rect = elementchild.Current.BoundingRectangle;
 				}
 				catch (ElementNotAvailableException) {
-					// stale reference from a live UI update between enumeration and this read; skip it
+					// stale reference from a live UI update between enumeration and this read; skip it (and its subtree, since we can't read it either)
 					continue;
 				}
 
-				TreeNode nodecandidate = FindDeepestPointNode(nodechild, pointscreen) ?? nodechild;
-				if (nodebest == null || nodecandidate.Level > nodebest.Level) {
-					nodebest = nodecandidate;
+				if (rect.IsEmpty == false && rect.Contains(pointscreen.X, pointscreen.Y) == true) {
+					double dblarea = rect.Width * rect.Height;
+					if (dblarea < dblbestarea) {
+						dblbestarea = dblarea;
+						nodebest = nodechild;
+					}
 				}
-			}
 
-			return nodebest;
+				FindDeepestPointNode(nodechild, pointscreen, ref nodebest, ref dblbestarea);
+			}
 		}
+
 
 		private void EnsureElementChildrenLoaded(TreeNode node) {
 			if (node.Nodes.Count == 1 && node.Nodes[0].Name == DUMMY_NODE_KEY && node.Tag is AutomationElement elementparent) {

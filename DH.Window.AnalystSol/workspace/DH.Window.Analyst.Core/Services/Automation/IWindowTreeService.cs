@@ -13,6 +13,9 @@ using DH.Window.Analyst.Models;
 
 namespace DH.Window.Analyst.Services.Automation {
 	public interface IWindowTreeService {
+		// false (default) = RawView (unfiltered, includes Legacy IAccessible bridge peers); true = ControlView (IsControlElement-filtered, fewer duplicate nodes). Affects GetChildren and GetElementAncestorChainToRoot.
+		bool UseControlView { get; set; }
+
 		// Win32-based, no UIA, returns immediately
 		IEnumerable<TopLevelWindowItem> GetTopLevelWindowInfos();
 

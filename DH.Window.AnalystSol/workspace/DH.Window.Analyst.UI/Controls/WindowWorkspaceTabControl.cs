@@ -46,6 +46,14 @@ namespace DH.Window.Analyst.UI.Controls {
 			m_chkSync.CheckedChanged += (sender, e) => m_ctrlHierarchy.SetSyncEnabled(m_chkSync.Checked);
 			// a Sync click (or Esc) stops Sync from inside m_ctrlHierarchy itself — reflect that back onto the checkbox so its visual state doesn't stay stuck ON
 			m_ctrlHierarchy.SyncStoppedExternally += (sender, e) => m_chkSync.Checked = false;
+
+			// RawView (default, off) shows every UIA peer including Legacy IAccessible bridge duplicates; ControlView (checked) filters to IsControlElement only, reducing duplicate nodes / Sync mis-highlight
+			m_chkControlView.CheckedChanged += (sender, e) => {
+				if (m_treeService != null) {
+					m_treeService.UseControlView = m_chkControlView.Checked;
+				}
+				m_ctrlHierarchy.ReloadTree();
+			};
 		}
 
 		public void Initialize(IWindowTreeService treeservice) {
@@ -101,8 +109,48 @@ namespace DH.Window.Analyst.UI.Controls {
 			}
 			else if (node.Tag is AutomationElement element) {
 				ShowUiaPropertyPanel();
-				await m_ctrlUiaPropertyView.ShowElementAsync(element);
+				await m_ctrlUiaPropertyView.ShowElementAsync(element, BuildIndexKeyPath(node), BuildTypePath(node));
 			}
+		}
+
+		// tab's root child down to node, in-memory only (TreeNode.Parent/.Index) — deliberately reuses the already-loaded tree instead of re-querying UIA, since a fresh ancestor walk + per-level FindAll(Children) to resolve each sibling index was the main cause of a felt slowdown vs. DH.Window.UITool
+		private static List<TreeNode> BuildChainFromRootChild(TreeNode node) {
+			List<TreeNode> listchain = new List<TreeNode>();
+			TreeNode nodecurrent = node;
+			while (nodecurrent.Parent != null) {
+				listchain.Insert(0, nodecurrent);
+				nodecurrent = nodecurrent.Parent;
+			}
+			return listchain;
+		}
+
+		// sibling-index path ("0/2/1") from the tab's root to node; empty if node IS the root
+		private static string BuildIndexKeyPath(TreeNode node) {
+			List<TreeNode> listchain = BuildChainFromRootChild(node);
+			List<string> listindices = new List<string>();
+			foreach (TreeNode nodehop in listchain) {
+				listindices.Add(nodehop.Index.ToString());
+			}
+			return string.Join("/", listindices);
+		}
+
+		// ControlType path (".\pane\pane\...\combo box") from the tab's root to node; each hop's ControlType is one cheap live property read (never a subtree enumeration), "?" for any hop that fails
+		private static string BuildTypePath(TreeNode node) {
+			List<TreeNode> listchain = BuildChainFromRootChild(node);
+			List<string> listtypes = new List<string>();
+			foreach (TreeNode nodehop in listchain) {
+				string strtype = "?";
+				if (nodehop.Tag is AutomationElement elementhop) {
+					try {
+						strtype = elementhop.Current.ControlType.LocalizedControlType;
+					}
+					catch (ElementNotAvailableException) {
+						// stale reference from a live UI update since the tree was built; leave as "?"
+					}
+				}
+				listtypes.Add(strtype);
+			}
+			return listtypes.Count > 0 ? "." + "\\" + string.Join("\\", listtypes) : ".";
 		}
 
 		// unifies snapshot capture for the "Current" submenu entry: dispatches on whatever node type is currently selected in this tab's hierarchy tree (Win32 window or UIA element), single node only — no subtree walk

@@ -29,6 +29,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_btnHighlight = new System.Windows.Forms.Button();
 			this.m_btnForeground = new System.Windows.Forms.Button();
 			this.m_chkSync = new System.Windows.Forms.CheckBox();
+			this.m_chkControlView = new System.Windows.Forms.CheckBox();
 			this.m_splitContent = new System.Windows.Forms.SplitContainer();
 			this.m_ctrlHierarchy = new DH.Window.Analyst.UI.Controls.WindowHierarchyControl();
 			this.m_ctrlPropertyView = new DH.Window.Analyst.UI.Controls.PropertyViewControl();
@@ -94,6 +95,7 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_panelHierarchyToolbar.Controls.Add(this.m_btnHighlight);
 			this.m_panelHierarchyToolbar.Controls.Add(this.m_btnForeground);
 			this.m_panelHierarchyToolbar.Controls.Add(this.m_chkSync);
+			this.m_panelHierarchyToolbar.Controls.Add(this.m_chkControlView);
 			this.m_panelHierarchyToolbar.Dock = System.Windows.Forms.DockStyle.Top;
 			this.m_panelHierarchyToolbar.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
 			this.m_panelHierarchyToolbar.WrapContents = true;
@@ -141,6 +143,17 @@ namespace DH.Window.Analyst.UI.Controls {
 			this.m_chkSync.Text = "Sync";
 			this.m_chkSync.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			this.m_chkSync.UseVisualStyleBackColor = true;
+			//
+			// m_chkControlView
+			//
+			this.m_chkControlView.Appearance = System.Windows.Forms.Appearance.Button;
+			this.m_chkControlView.Margin = new System.Windows.Forms.Padding(3);
+			this.m_chkControlView.Name = "m_chkControlView";
+			this.m_chkControlView.Size = new System.Drawing.Size(90, 23);
+			this.m_chkControlView.TabIndex = 4;
+			this.m_chkControlView.Text = "Control View";
+			this.m_chkControlView.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.m_chkControlView.UseVisualStyleBackColor = true;
 			//
 			// m_splitContent
 			//
@@ -297,6 +310,7 @@ namespace DH.Window.Analyst.UI.Controls {
 		private System.Windows.Forms.Button m_btnHighlight;
 		private System.Windows.Forms.Button m_btnForeground;
 		private System.Windows.Forms.CheckBox m_chkSync;
+		private System.Windows.Forms.CheckBox m_chkControlView;
 		private System.Windows.Forms.SplitContainer m_splitContent;
 		private DH.Window.Analyst.UI.Controls.WindowHierarchyControl m_ctrlHierarchy;
 		private DH.Window.Analyst.UI.Controls.PropertyViewControl m_ctrlPropertyView;

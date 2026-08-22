@@ -32,6 +32,13 @@ namespace DH.Window.Analyst.UI.Controls {
 		private string m_strSuggestedSelectorKv = string.Empty;
 		private string m_strSuggestedSelectorXPath = string.Empty;
 
+		// Selector2: every available identifying property AND-combined (comma-separated, UITool UIAFIND selector format) instead of BuildSuggestedSelector's single-best-property pick — more verbose but more specific/robust when one property alone is ambiguous
+		private string m_strSuggestedSelector2 = string.Empty;
+
+		// KeyPath ("0/2/1") and TypePath (".\pane\...\combo box") from the tab's root down to the current element, passed in already-computed by ShowElementAsync's caller (built from the loaded TreeNode structure, not fresh UIA calls) — last resort when no property combination is reliable
+		private string m_strKeyPath = string.Empty;
+		private string m_strTypePath = string.Empty;
+
 		public UiaPropertyViewControl() {
 			InitializeComponent();
 
@@ -40,11 +47,23 @@ namespace DH.Window.Analyst.UI.Controls {
 			itemcopyselectorkv.Click += (s, e) => CopySuggestedSelector(false);
 			ToolStripMenuItem itemcopyselectorxpath = new ToolStripMenuItem("Copy Selector (XPath)");
 			itemcopyselectorxpath.Click += (s, e) => CopySuggestedSelector(true);
+			ToolStripMenuItem itemcopyselector2 = new ToolStripMenuItem("Copy Selector2 (AND-combined)");
+			itemcopyselector2.Click += (s, e) => CopyText(m_strSuggestedSelector2);
+			ToolStripMenuItem itemcopykeypath = new ToolStripMenuItem("Copy KeyPath");
+			itemcopykeypath.Click += (s, e) => CopyText(m_strKeyPath);
+			ToolStripMenuItem itemcopytypepath = new ToolStripMenuItem("Copy TypePath");
+			itemcopytypepath.Click += (s, e) => CopyText(m_strTypePath);
 			m_lsvBasic.ContextMenuStrip.Items.Insert(1, itemcopyselectorkv);
 			m_lsvBasic.ContextMenuStrip.Items.Insert(2, itemcopyselectorxpath);
+			m_lsvBasic.ContextMenuStrip.Items.Insert(3, itemcopyselector2);
+			m_lsvBasic.ContextMenuStrip.Items.Insert(4, itemcopykeypath);
+			m_lsvBasic.ContextMenuStrip.Items.Insert(5, itemcopytypepath);
 			m_lsvBasic.ContextMenuStrip.Opening += (s, e) => {
 				itemcopyselectorkv.Visible = m_currentElement != null;
 				itemcopyselectorxpath.Visible = m_currentElement != null;
+				itemcopyselector2.Visible = m_currentElement != null;
+				itemcopykeypath.Visible = m_currentElement != null && string.IsNullOrEmpty(m_strKeyPath) == false;
+				itemcopytypepath.Visible = m_currentElement != null && string.IsNullOrEmpty(m_strTypePath) == false;
 			};
 
 			m_lsvPatterns.SelectedIndexChanged += OnPatternSelectedIndexChanged;
@@ -69,7 +88,8 @@ namespace DH.Window.Analyst.UI.Controls {
 			m_treeService = treeservice;
 		}
 
-		public async Task ShowElementAsync(AutomationElement element) {
+		// strkeypath/strtypepath are precomputed by the caller from the already-loaded tree (TreeNode.Parent/.Index), not re-derived here — a fresh UIA ancestor walk + per-level sibling search was slow enough to be noticeable; pass empty strings if no tree context is available
+		public async Task ShowElementAsync(AutomationElement element, string strkeypath, string strtypepath) {
 			m_lsvBasic.Items.Clear();
 			m_lsvChildSummary.Items.Clear();
 			m_lsvPatterns.Items.Clear();
@@ -78,6 +98,9 @@ namespace DH.Window.Analyst.UI.Controls {
 			m_currentNativeHandle = IntPtr.Zero;
 			m_strSuggestedSelectorKv = string.Empty;
 			m_strSuggestedSelectorXPath = string.Empty;
+			m_strSuggestedSelector2 = string.Empty;
+			m_strKeyPath = strkeypath ?? string.Empty;
+			m_strTypePath = strtypepath ?? string.Empty;
 			if (element == null || m_treeService == null) {
 				return;
 			}
@@ -107,6 +130,22 @@ namespace DH.Window.Analyst.UI.Controls {
 				ListViewItem lvitemselector = AddRow(m_lsvBasic, "Suggested Selector", $"{m_strSuggestedSelectorKv}  [{strreliability}]");
 				lvitemselector.Font = new System.Drawing.Font(m_lsvBasic.Font, System.Drawing.FontStyle.Bold);
 				lvitemselector.BackColor = System.Drawing.Color.LightYellow;
+
+				m_strSuggestedSelector2 = BuildCombinedSelector(info);
+				ListViewItem lvitemselector2 = AddRow(m_lsvBasic, "Suggested Selector2", m_strSuggestedSelector2);
+				lvitemselector2.Font = new System.Drawing.Font(m_lsvBasic.Font, System.Drawing.FontStyle.Bold);
+				lvitemselector2.BackColor = System.Drawing.Color.LightYellow;
+
+				if (string.IsNullOrEmpty(m_strKeyPath) == false) {
+					ListViewItem lvitemkeypath = AddRow(m_lsvBasic, "KeyPath", m_strKeyPath);
+					lvitemkeypath.Font = new System.Drawing.Font(m_lsvBasic.Font, System.Drawing.FontStyle.Bold);
+					lvitemkeypath.BackColor = System.Drawing.Color.LightYellow;
+				}
+				if (string.IsNullOrEmpty(m_strTypePath) == false) {
+					ListViewItem lvitemtypepath = AddRow(m_lsvBasic, "TypePath", m_strTypePath);
+					lvitemtypepath.Font = new System.Drawing.Font(m_lsvBasic.Font, System.Drawing.FontStyle.Bold);
+					lvitemtypepath.BackColor = System.Drawing.Color.LightYellow;
+				}
 
 				List<AutomationElement> listchildren = await Task.Run(() => new List<AutomationElement>(m_treeService.GetChildren(element)));
 				Dictionary<string, int> diccounts = new Dictionary<string, int>();
@@ -219,12 +258,32 @@ namespace DH.Window.Analyst.UI.Controls {
 			return nindex >= 0 ? strprogrammatic.Substring(nindex + 1) : strprogrammatic;
 		}
 
+		// AND-combines every available identifying property (comma-separated, matching DH.Window.UITool's UIAFIND selector format) instead of BuildSuggestedSelector's single-best pick, so a single ambiguous property (e.g. AutomationId reused by a repeated control) doesn't produce a false match on its own
+		private string BuildCombinedSelector(AutomationElement.AutomationElementInformation info) {
+			List<string> listparts = new List<string>();
+			if (string.IsNullOrEmpty(info.AutomationId) == false) {
+				listparts.Add($"AutomationId={info.AutomationId}");
+			}
+			if (string.IsNullOrEmpty(info.Name) == false) {
+				listparts.Add($"Name={info.Name}");
+			}
+			if (string.IsNullOrEmpty(info.ClassName) == false) {
+				listparts.Add($"ClassName={info.ClassName}");
+			}
+			listparts.Add($"ControlType={GetControlTypeToken(info.ControlType)}");
+
+			return listparts.Count > 0 ? string.Join(",", listparts) : "(no reliable identifier)";
+		}
+
 		private void CopySuggestedSelector(bool busexpath) {
 			if (m_currentElement == null) {
 				return;
 			}
 
-			string strvalue = busexpath == true ? m_strSuggestedSelectorXPath : m_strSuggestedSelectorKv;
+			CopyText(busexpath == true ? m_strSuggestedSelectorXPath : m_strSuggestedSelectorKv);
+		}
+
+		private static void CopyText(string strvalue) {
 			if (string.IsNullOrEmpty(strvalue) == false) {
 				Clipboard.SetText(strvalue);
 			}

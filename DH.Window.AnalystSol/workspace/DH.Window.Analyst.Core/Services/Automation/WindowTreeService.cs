@@ -22,6 +22,8 @@ using DH.Window.Analyst.Models;
 
 namespace DH.Window.Analyst.Services.Automation {
 	public class WindowTreeService : IWindowTreeService {
+		public bool UseControlView { get; set; }
+
 		// icon extraction cached per exe path (many windows share the same process)
 		private readonly Dictionary<string, ImageSource> m_dicIconCache = new Dictionary<string, ImageSource>();
 
@@ -616,7 +618,7 @@ namespace DH.Window.Analyst.Services.Automation {
 				return listchain;
 			}
 
-			TreeWalker walker = TreeWalker.RawViewWalker;
+			TreeWalker walker = UseControlView == true ? TreeWalker.ControlViewWalker : TreeWalker.RawViewWalker;
 			AutomationElement elementcurrent = element;
 			int nhopcount = 0;
 
@@ -640,7 +642,10 @@ namespace DH.Window.Analyst.Services.Automation {
 			List<AutomationElement> listchildren = new List<AutomationElement>();
 
 			try {
-				AutomationElementCollection colchildren = parent.FindAll(TreeScope.Children, System.Windows.Automation.Condition.TrueCondition);
+				System.Windows.Automation.Condition conditionchildren = UseControlView == true
+					? new PropertyCondition(AutomationElement.IsControlElementProperty, true)
+					: System.Windows.Automation.Condition.TrueCondition;
+				AutomationElementCollection colchildren = parent.FindAll(TreeScope.Children, conditionchildren);
 
 				foreach (AutomationElement element in colchildren) {
 					listchildren.Add(element);

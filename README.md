@@ -19,6 +19,7 @@ Several parts of the design — the property panel's General/Style/Class Info/Wi
 **Window Exploration**
 - Top-level window listing (Win32 `EnumWindows`-based), with per-process grouping/search/Instant Find
 - Win32 tree ↔ UI Automation (UIA) tree toggle, with lazy loading
+- Control View toggle for the UIA tree (RawView by default; ControlView filters out Legacy IAccessible bridge duplicate peers, reducing noise for Sync/tree browsing)
 - Finder Tool for picking a target by cursor (Spy++-style drag pickup)
 - Basic search by Caption/ClassName/Handle, plus extended search by PID/ProcessName/ControlId/AutomationId/UIA Name/ControlType (Find Window)
 - "Show Info on Mouse" global mouse picker — live hover info/highlight over windows in any process, click to select instantly
@@ -29,6 +30,7 @@ Several parts of the design — the property panel's General/Style/Class Info/Wi
 - Basic info, low-level Win32 properties (Window/Client/Restore Rect, Style/ExStyle, Window Proc, Class info, etc. — full Spy++-style coverage), child window summary
 - Window relationship info (Parent/Owner/First Child/Next/Previous, Z-Order)
 - UIA property and Child Elements inspection, with a reliability-ranked "Suggested Selector" (AutomationId → Name+ControlType → ClassName+ControlType fallback) copyable as key=value or XPath for automation scripts
+- Selector2 (AND-combined AutomationId/Name/ClassName/ControlType, for when a single property alone is ambiguous), plus KeyPath (sibling-index path, e.g. `0/2/1`) and TypePath (ControlType path, e.g. `.\pane\pane\...\combo box`) as further fallbacks for scripting
 - Selection highlight overlay, bring-to-foreground
 
 ![Suggested Selector](docs/images/uia-suggested-selector.png)

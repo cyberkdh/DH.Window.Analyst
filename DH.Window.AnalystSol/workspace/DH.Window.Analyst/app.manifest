@@ -7,7 +7,7 @@ thunk cache that does not reliably refresh, so a target window's rect can appear
 after the window is moved. Per-Monitor V2 awareness makes the queries live.
 -->
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity version="1.0.0.0" name="DH.Window.Analyst.app"/>
+  <assemblyIdentity version="1.0.0.2" name="DH.Window.Analyst.app"/>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
